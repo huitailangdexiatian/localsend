@@ -1,5 +1,17 @@
 # LocalSend
 
+> **Fork notice:** This is a fork of [localsend/localsend](https://github.com/localsend/localsend)
+> that adds **cross-subnet device discovery via gossip exchanges**. Devices on different
+> subnets (reachable by unicast, but not by multicast) exchange their views of confirmed
+> devices over `POST /api/localsend/v2/gossip`, so they find each other without a central
+> server. A received device entry is only shown after it has been confirmed by a register
+> probe with certificate verification. Everything else follows upstream.
+>
+> **本仓库说明：** 基于上游 [localsend/localsend](https://github.com/localsend/localsend) 的 fork，
+> 增加了 **gossip 跨网段设备发现**：不同网段（单播可达、组播不通）的设备通过
+> `POST /api/localsend/v2/gossip` 交换各自已确认的设备列表，无需常驻服务器即可互相发现。
+> 收到的设备条目必须经 register 探测与证书验证通过后才会显示。其余与上游保持一致。
+
 [![CI status][ci-badge]][ci-workflow]
 [![Translations][translate-badge]][translate-link]
 [![Packaging status][packaging-badge]][packaging-link]
