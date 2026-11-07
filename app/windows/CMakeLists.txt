@@ -41,6 +41,10 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
   target_compile_options(${TARGET} PRIVATE /EHsc)
+  # Read sources as UTF-8. Plugin sources contain non-ASCII characters; with a
+  # non-UTF-8 system code page (e.g. GBK/936) MSVC warns C4819, which /WX turns
+  # into a build error.
+  target_compile_options(${TARGET} PRIVATE /utf-8)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
