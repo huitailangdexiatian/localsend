@@ -65,6 +65,7 @@ async fn start_server_with_stalled_events(
             pin: None,
             verify_checksums: true,
             event_tx,
+            gossip_devices: None,
         }),
         WebConfig::default(),
         stop_rx,

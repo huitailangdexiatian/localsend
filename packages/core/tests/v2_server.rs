@@ -63,6 +63,7 @@ async fn start_test_server_with_verification(
             while let Some(event) = event_rx.recv().await {
                 match event {
                     ServerEventV2::Register { .. } => {}
+                    ServerEventV2::GossipReceived { .. } => {}
                     ServerEventV2::PrepareUpload {
                         files, decision_tx, ..
                     } => {
@@ -141,6 +142,7 @@ async fn start_test_server_with_verification(
             pin,
             verify_checksums,
             event_tx,
+            gossip_devices: None,
         }),
         WebConfig::default(),
         stop_rx,
@@ -1042,6 +1044,7 @@ async fn test_prepare_upload_aborted_by_sender_disconnect() {
             pin: None,
             verify_checksums: true,
             event_tx,
+            gossip_devices: None,
         }),
         WebConfig::default(),
         stop_rx,
@@ -1144,6 +1147,7 @@ async fn test_prepare_upload_cancelled_by_session_less_cancel() {
             pin: None,
             verify_checksums: true,
             event_tx,
+            gossip_devices: None,
         }),
         WebConfig::default(),
         stop_rx,
@@ -1279,6 +1283,7 @@ async fn test_prepare_upload_aborted_by_sender_disconnect_tls() {
             pin: None,
             verify_checksums: true,
             event_tx,
+            gossip_devices: None,
         }),
         WebConfig::default(),
         stop_rx,

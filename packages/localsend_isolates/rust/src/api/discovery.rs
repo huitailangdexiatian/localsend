@@ -5,6 +5,8 @@ use localsend::discovery::{
     DeviceChannel, DeviceIdentity, DeviceLog, DiscoveredDevice, DiscoveryConfig, DiscoveryEvent,
     DiscoveryHandle, HttpChannel, StatefulDevice,
 };
+use localsend::gossip::GossipHandle;
+use localsend::http::dto_v2::GossipEntryDtoV2;
 use localsend::model::discovery::{DeviceType, ProtocolType};
 use localsend::multicast::{DEFAULT_MULTICAST_GROUP_V6, MulticastDevice};
 use localsend::util::interface::InterfaceFilter;
@@ -113,9 +115,20 @@ pub struct RsDiscovery {
 /// The stoppable part of a running discovery, shared between [RsDiscovery]
 /// and [RUNNING_DISCOVERY] so that a leftover instance can be stopped without
 /// its Dart owner.
-struct DiscoveryInstance {
-    handle: DiscoveryHandle,
+pub(crate) struct DiscoveryInstance {
+    handle: Arc<DiscoveryHandle>,
     stop_tx: Mutex<Option<oneshot::Sender<()>>>,
+
+    /// The gossip engine on top of the discovery, when enabled. Exchanges
+    /// views with confirmed peers and confirms cross-subnet hints into the
+    /// store; confirmed devices are emitted on [RsDiscovery::listen] like
+    /// any other confirmation.
+    pub(crate) gossip: Option<Arc<GossipHandle>>,
+
+    /// Keeps the gossip stop channel's sender alive: dropping it would end
+    /// the engine's periodic task immediately. The engine is stopped via
+    /// [GossipHandle::stop] in [DiscoveryInstance::stop].
+    _gossip_stop_tx: Option<oneshot::Sender<()>>,
 
     /// Ends the [RsDiscovery::listen] stream on stop. The discovery event
     /// sender lives in the handle itself, so the event channel never closes
@@ -132,7 +145,26 @@ impl DiscoveryInstance {
             let _ = stop_tx.send(());
             self.handle.wait_stopped().await;
         }
+        if let Some(gossip) = &self.gossip {
+            gossip.stop();
+        }
         self.cancel.cancel();
+    }
+
+    /// This device's view of confirmed devices, as offered in gossip
+    /// responses. Empty when gossip is disabled.
+    pub(crate) fn gossip_view(&self) -> Vec<GossipEntryDtoV2> {
+        match &self.gossip {
+            Some(_) => localsend::gossip::gossip_view(&self.handle),
+            None => Vec::new(),
+        }
+    }
+
+    /// The gossip engine of this instance, when enabled. The HTTP server's
+    /// event loop uses it to ingest hints that arrive at its `gossip`
+    /// endpoint and to exchange with newly registered devices.
+    pub(crate) fn gossip_handle(&self) -> Option<Arc<GossipHandle>> {
+        self.gossip.clone()
     }
 }
 
@@ -142,6 +174,15 @@ impl DiscoveryInstance {
 /// fail the next bind); [start_discovery] stops such a leftover instance
 /// before starting again.
 static RUNNING_DISCOVERY: Mutex<Option<Arc<DiscoveryInstance>>> = Mutex::const_new(None);
+
+/// The running discovery, for cross-isolate access from the HTTP server:
+/// gossip exchanges arriving at the server are fed to this instance's engine,
+/// and its device view is offered in gossip responses. `None` while the lock
+/// is contended (readers retry on the next exchange) or discovery is off.
+pub(crate) fn running_discovery_sync() -> Option<Arc<DiscoveryInstance>> {
+    let guard = RUNNING_DISCOVERY.try_lock().ok()?;
+    guard.clone()
+}
 
 /// Starts the discovery: binds the UDP multicast sockets on all usable
 /// network interfaces, answers announcements of other devices with an HTTP
@@ -155,6 +196,12 @@ static RUNNING_DISCOVERY: Mutex<Option<Arc<DiscoveryInstance>>> = Mutex::const_n
 /// device's TLS identity, sent as client certificate with every register
 /// request; [fingerprint] must be the certificate's SHA-256 fingerprint.
 ///
+/// With [gossip_enabled], a gossip engine runs on top of the discovery: it
+/// periodically exchanges views of confirmed devices with a random peer (see
+/// `POST /api/localsend/v2/gossip`), so devices of other subnets — reachable
+/// by unicast, but not by multicast — spread peer-to-peer. Its confirmations
+/// enter the store and are emitted like any other discovery.
+///
 /// Nothing is announced until [RsDiscovery::announce] is called.
 ///
 /// Cannot fail besides an invalid [group]: when no multicast socket could be
@@ -162,6 +209,7 @@ static RUNNING_DISCOVERY: Mutex<Option<Arc<DiscoveryInstance>>> = Mutex::const_n
 /// without multicast — see [RsDiscovery::multicast_error] — and still learns
 /// about devices through [RsDiscovery::discover], [RsDiscovery::scan_subnet]
 /// and [RsDiscovery::add_device].
+#[allow(clippy::too_many_arguments)]
 pub async fn start_discovery(
     group: String,
     port: u16,
@@ -177,6 +225,7 @@ pub async fn start_discovery(
     cert_pem: String,
     private_key_pem: String,
     timeout_ms: u64,
+    gossip_enabled: bool,
 ) -> anyhow::Result<RsDiscovery> {
     let group = group
         .parse()
@@ -192,40 +241,71 @@ pub async fn start_discovery(
     let (event_tx, event_rx) = mpsc::channel::<DiscoveryEvent>(16);
     let (stop_tx, stop_rx) = oneshot::channel::<()>();
 
-    let handle = localsend::discovery::start(
-        DiscoveryConfig {
-            group,
-            // Hardcoded for now; becomes a parameter once the app exposes it.
-            group_v6: Some(DEFAULT_MULTICAST_GROUP_V6),
-            port,
-            interface_filter: InterfaceFilter {
-                whitelist: network_whitelist,
-                blacklist: network_blacklist,
-            },
-            device: MulticastDevice {
-                alias,
-                version,
-                device_model,
-                device_type,
-                fingerprint,
+    let device = MulticastDevice {
+        alias: alias.clone(),
+        version: version.clone(),
+        device_model: device_model.clone(),
+        device_type,
+        fingerprint: fingerprint.clone(),
+        port,
+        protocol,
+        download,
+    };
+    let identity = DeviceIdentity {
+        cert_pem: cert_pem.clone(),
+        private_key_pem: private_key_pem.clone(),
+    };
+
+    let handle = Arc::new(
+        localsend::discovery::start(
+            DiscoveryConfig {
+                group,
+                // Hardcoded for now; becomes a parameter once the app exposes it.
+                group_v6: Some(DEFAULT_MULTICAST_GROUP_V6),
                 port,
-                protocol,
-                download,
+                interface_filter: InterfaceFilter {
+                    whitelist: network_whitelist,
+                    blacklist: network_blacklist,
+                },
+                device: device.clone(),
+                identity: identity.clone(),
+                timeout: Duration::from_millis(timeout_ms),
+                event_tx: Some(event_tx),
             },
-            identity: DeviceIdentity {
-                cert_pem,
-                private_key_pem,
-            },
-            timeout: Duration::from_millis(timeout_ms),
-            event_tx: Some(event_tx),
-        },
-        stop_rx,
-    )
-    .await;
+            stop_rx,
+        )
+        .await,
+    );
+
+    // The gossip engine rides on the discovery: it exchanges views with
+    // confirmed peers and confirms cross-subnet hints into the store.
+    let (gossip_stop_tx, gossip_stop_rx) = oneshot::channel();
+    let gossip = if gossip_enabled {
+        Some(Arc::new(
+            localsend::gossip::start(
+                localsend::gossip::GossipConfig {
+                    device,
+                    identity,
+                    discovery: handle.clone(),
+                    interval: localsend::gossip::DEFAULT_EXCHANGE_INTERVAL,
+                    timeout: localsend::gossip::DEFAULT_TIMEOUT,
+                    hint_ttl: localsend::gossip::DEFAULT_HINT_TTL,
+                    max_attempts: localsend::gossip::DEFAULT_MAX_ATTEMPTS,
+                    probe_concurrency: localsend::gossip::DEFAULT_PROBE_CONCURRENCY,
+                },
+                gossip_stop_rx,
+            )
+            .await,
+        ))
+    } else {
+        None
+    };
 
     let instance = Arc::new(DiscoveryInstance {
         handle,
         stop_tx: Mutex::new(Some(stop_tx)),
+        gossip,
+        _gossip_stop_tx: gossip_enabled.then_some(gossip_stop_tx),
         cancel: CancellationToken::new(),
     });
     *running_discovery = Some(instance.clone());
@@ -410,6 +490,32 @@ impl RsDiscovery {
                 download: device.download,
             })
             .await;
+    }
+
+    /// Exchanges views with every confirmed device right away, in addition to
+    /// the periodic random-peer exchange. Used on manual refreshes, so that
+    /// cross-subnet knowledge spreads immediately instead of within the
+    /// exchange interval. Does nothing when gossip is disabled.
+    pub async fn exchange_with_all(&self) {
+        let Some(gossip) = &self.instance.gossip else {
+            return;
+        };
+        let channels: Vec<HttpChannel> = self
+            .instance
+            .handle
+            .devices()
+            .iter()
+            .filter_map(|device| {
+                device
+                    .get_best_channel()
+                    .and_then(|channel| channel.http().cloned())
+            })
+            .collect();
+
+        // Concurrent: a peer that is slow or gone must not stretch the
+        // refresh by its whole timeout.
+        let exchanges = channels.into_iter().map(|channel| gossip.exchange(channel));
+        futures_util::future::join_all(exchanges).await;
     }
 
     /// The retained confirmations of a stored device, oldest first, capped at

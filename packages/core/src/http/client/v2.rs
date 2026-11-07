@@ -1,8 +1,9 @@
 use super::{ClientError, ResponseExt, ResultWithPublicKey};
 use crate::http::client::url::{ApiVersion, TargetUrl};
 use crate::http::dto_v2::{
-    InfoResponseDtoV2, PrepareDownloadResponseDtoV2, PrepareUploadRequestDtoV2,
-    PrepareUploadResponseDtoV2, PrepareUploadResultV2, RegisterDtoV2, RegisterResponseDtoV2,
+    GossipRequestDtoV2, GossipResponseDtoV2, InfoResponseDtoV2, PrepareDownloadResponseDtoV2,
+    PrepareUploadRequestDtoV2, PrepareUploadResponseDtoV2, PrepareUploadResultV2, RegisterDtoV2,
+    RegisterResponseDtoV2,
 };
 use crate::model::discovery::ProtocolType;
 use futures_util::StreamExt;
@@ -109,6 +110,60 @@ impl LsHttpClientV2 {
         };
 
         let body = res.json::<RegisterResponseDtoV2>().await?;
+
+        Ok(ResultWithPublicKey {
+            public_key,
+            cert_fingerprint,
+            body,
+        })
+    }
+
+    /// Exchanges device lists with another device for cross-subnet discovery.
+    ///
+    /// POST /api/localsend/v2/gossip
+    ///
+    /// Sends this device's info plus the devices it has confirmed; the
+    /// response carries the peer's info and its view of confirmed devices.
+    /// In HTTPS mode the response's `cert_fingerprint` is the peer's
+    /// identity, proven by the TLS handshake.
+    pub async fn gossip(
+        &self,
+        protocol: ProtocolType,
+        ip: &str,
+        port: u16,
+        payload: GossipRequestDtoV2,
+    ) -> Result<ResultWithPublicKey<GossipResponseDtoV2>, ClientError> {
+        let url = TargetUrl {
+            version: ApiVersion::V2,
+            protocol: protocol.as_str(),
+            host: ip.to_string(),
+            port,
+            path: "/gossip",
+            params: &[],
+        }
+        .to_string();
+
+        let res = self
+            .client
+            .post(&url)
+            .header("Content-Type", "application/json")
+            .body(serde_json::to_string(&payload)?)
+            .send()
+            .await?;
+
+        if res.status() != StatusCode::OK {
+            return res.into_error().await;
+        }
+
+        let (public_key, cert_fingerprint) = match protocol {
+            ProtocolType::Https => (
+                Some(super::verify_cert_from_res(&res, None)?),
+                Some(super::cert_fingerprint_from_res(&res)?),
+            ),
+            _ => (None, None),
+        };
+
+        let body = res.json::<GossipResponseDtoV2>().await?;
 
         Ok(ResultWithPublicKey {
             public_key,

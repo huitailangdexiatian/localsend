@@ -136,6 +136,7 @@ async fn start_network(identity: &Arc<storage::Identity>) -> anyhow::Result<Netw
             pin: None,
             verify_checksums: true,
             event_tx: server_tx.clone(),
+            gossip_devices: None,
         }),
         WebConfig::default(),
         server_stop_rx,

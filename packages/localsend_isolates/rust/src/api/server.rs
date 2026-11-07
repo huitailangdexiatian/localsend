@@ -1,5 +1,7 @@
+use crate::api::discovery::running_discovery_sync;
 use crate::frb_generated::StreamSink;
 use flutter_rust_bridge::frb;
+use localsend::discovery::HttpChannel;
 pub use localsend::http::dto_v2::RegisterDtoV2;
 use localsend::http::server::ServerConfigV2;
 pub use localsend::http::server::TlsConfig;
@@ -268,6 +270,15 @@ pub async fn start_server(
             pin,
             verify_checksums,
             event_tx,
+            // The running discovery's store is this device's gossip view.
+            // Cross-isolate by design: the discovery runs in its own Dart
+            // isolate, but both live in this process. Empty while the
+            // discovery is not running or its lock is contended.
+            gossip_devices: Some(Arc::new(|| {
+                running_discovery_sync()
+                    .map(|instance| instance.gossip_view())
+                    .unwrap_or_default()
+            })),
         }),
         web_config,
         stop_rx,
@@ -361,12 +372,39 @@ impl RsHttpServer {
         event: ServerEventV2,
     ) -> bool {
         match event {
-            ServerEventV2::Register { ip, info } => sink
-                .add(RsServerEvent::Register {
+            ServerEventV2::Register { ip, info } => {
+                // A device just confirmed itself with this server. Exchange
+                // views with it right away, so that cross-subnet knowledge
+                // spreads immediately instead of within the exchange
+                // interval. Spawned: the exchange must not delay the event
+                // stream; a failed exchange is retried periodically.
+                if let Some(gossip) = running_discovery_sync().and_then(|i| i.gossip_handle()) {
+                    let channel = HttpChannel {
+                        host: ip.to_string(),
+                        port: info.port,
+                        protocol: info.protocol,
+                    };
+                    tokio::spawn(async move { gossip.exchange(channel).await });
+                }
+
+                sink.add(RsServerEvent::Register {
                     ip: ip.to_string(),
                     info,
                 })
-                .is_ok(),
+                .is_ok()
+            }
+            ServerEventV2::GossipReceived { info, entries, .. } => {
+                // A peer sent its device view to this server's gossip
+                // endpoint. Ingest it into the engine's hint table; the
+                // confirmed devices reach Dart via the discovery stream.
+                if let Some(gossip) = running_discovery_sync().and_then(|i| i.gossip_handle()) {
+                    let fingerprint = info.fingerprint;
+                    tokio::spawn(async move {
+                        gossip.ingest_hints(Some(fingerprint), entries).await;
+                    });
+                }
+                true
+            }
             ServerEventV2::PrepareUpload {
                 session_id,
                 ip,

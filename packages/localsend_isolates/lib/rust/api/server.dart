@@ -5,8 +5,9 @@
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
-import 'package:localsend_isolates/rust/api/model.dart';
-import 'package:localsend_isolates/rust/frb_generated.dart';
+
+import '../frb_generated.dart';
+import 'model.dart';
 
 part 'server.freezed.dart';
 
@@ -179,10 +180,7 @@ sealed class RsServerEvent with _$RsServerEvent {
   /// On TLS, this event is only emitted when `info.fingerprint` matches the
   /// fingerprint of the client certificate verified during the mTLS
   /// handshake, so the fingerprint cannot be spoofed.
-  const factory RsServerEvent.register({
-    required String ip,
-    required RegisterDtoV2 info,
-  }) = RsServerEvent_Register;
+  const factory RsServerEvent.register({required String ip, required RegisterDtoV2 info}) = RsServerEvent_Register;
 
   /// A sender requests to upload files via `POST /api/localsend/v2/prepare-upload`.
   const factory RsServerEvent.prepareUpload({
@@ -200,52 +198,34 @@ sealed class RsServerEvent with _$RsServerEvent {
   }) = RsServerEvent_PrepareUpload;
 
   /// An accepted file is being uploaded via `POST /api/localsend/v2/upload`.
-  const factory RsServerEvent.fileUpload({
-    required String sessionId,
-    required String fileId,
-    required FileDto file,
-  }) = RsServerEvent_FileUpload;
+  const factory RsServerEvent.fileUpload({required String sessionId, required String fileId, required FileDto file}) = RsServerEvent_FileUpload;
 
   /// An upload session ended.
-  const factory RsServerEvent.sessionEnd({
-    required String sessionId,
-    required SessionEndReasonV2 reason,
-  }) = RsServerEvent_SessionEnd;
+  const factory RsServerEvent.sessionEnd({required String sessionId, required SessionEndReasonV2 reason}) = RsServerEvent_SessionEnd;
 
   /// A prepare-upload request was aborted before a session was created,
   /// e.g. the sender disconnected while the application was still deciding.
   /// The [RsServerEvent::PrepareUpload] with the same session ID
   /// no longer needs to be answered.
-  const factory RsServerEvent.prepareUploadAborted({
-    required String sessionId,
-  }) = RsServerEvent_PrepareUploadAborted;
+  const factory RsServerEvent.prepareUploadAborted({required String sessionId}) = RsServerEvent_PrepareUploadAborted;
 
   /// `POST /api/localsend/v2/cancel` was received for a session this server
   /// does not manage: the remote device cancels a transfer this application
   /// is currently *sending* to it. The application must verify that [ip]
   /// matches the target of the send session before cancelling it.
-  const factory RsServerEvent.cancelReceived({
-    required String ip,
-    required String sessionId,
-  }) = RsServerEvent_CancelReceived;
+  const factory RsServerEvent.cancelReceived({required String ip, required String sessionId}) = RsServerEvent_CancelReceived;
 
   /// A web client requests to download the shared files via `POST /api/localsend/v2/prepare-download`.
   ///
   /// Must be answered with [RsHttpServer::respond_prepare_download].
-  const factory RsServerEvent.webPrepareDownload({
-    required String ip,
-    required String sessionId,
-    String? userAgent,
-  }) = RsServerEvent_WebPrepareDownload;
+  const factory RsServerEvent.webPrepareDownload({required String ip, required String sessionId, String? userAgent}) =
+      RsServerEvent_WebPrepareDownload;
 
   /// A web client downloads an offered file via `GET /api/localsend/v2/download`.
   ///
   /// Must be answered with [RsHttpServer::respond_file_download].
-  const factory RsServerEvent.webFileDownload({
-    required String sessionId,
-    required String fileId,
-    required FileDto file,
-  }) = RsServerEvent_WebFileDownload;
+  const factory RsServerEvent.webFileDownload({required String sessionId, required String fileId, required FileDto file}) =
+      RsServerEvent_WebFileDownload;
 
   /// Another application instance requested the running application to show itself
   /// via `POST /api/localsend/v2/show`.
@@ -264,19 +244,13 @@ sealed class RsServerEvent with _$RsServerEvent {
   }) = RsServerEvent_ListenerFailed;
 }
 
-enum SessionEndReasonV2 {
-  finished,
-  cancelled,
-}
+enum SessionEndReasonV2 { finished, cancelled }
 
 class TlsConfig {
   final String cert;
   final String privateKey;
 
-  const TlsConfig({
-    required this.cert,
-    required this.privateKey,
-  });
+  const TlsConfig({required this.cert, required this.privateKey});
 
   @override
   int get hashCode => cert.hashCode ^ privateKey.hashCode;
@@ -377,11 +351,7 @@ class WebPages {
   final String? uploadHtml;
   final String? error403Html;
 
-  const WebPages({
-    this.downloadHtml,
-    this.uploadHtml,
-    this.error403Html,
-  });
+  const WebPages({this.downloadHtml, this.uploadHtml, this.error403Html});
 
   @override
   int get hashCode => downloadHtml.hashCode ^ uploadHtml.hashCode ^ error403Html.hashCode;
@@ -410,11 +380,7 @@ class WebParams {
   /// Pages left `null` are served from the assets embedded at compile time.
   final WebPages pages;
 
-  const WebParams({
-    required this.mode,
-    required this.i18N,
-    required this.pages,
-  });
+  const WebParams({required this.mode, required this.i18N, required this.pages});
 
   @override
   int get hashCode => mode.hashCode ^ i18N.hashCode ^ pages.hashCode;

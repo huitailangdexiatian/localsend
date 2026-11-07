@@ -67,6 +67,11 @@ class SyncStateMapper extends ClassMapperBase<SyncState> {
     'discoveryTimeout',
     _$discoveryTimeout,
   );
+  static bool _$gossipEnabled(SyncState v) => v.gossipEnabled;
+  static const Field<SyncState, bool> _f$gossipEnabled = Field(
+    'gossipEnabled',
+    _$gossipEnabled,
+  );
   static bool _$serverRunning(SyncState v) => v.serverRunning;
   static const Field<SyncState, bool> _f$serverRunning = Field(
     'serverRunning',
@@ -90,6 +95,7 @@ class SyncStateMapper extends ClassMapperBase<SyncState> {
     #protocol: _f$protocol,
     #multicastGroup: _f$multicastGroup,
     #discoveryTimeout: _f$discoveryTimeout,
+    #gossipEnabled: _f$gossipEnabled,
     #serverRunning: _f$serverRunning,
     #download: _f$download,
   };
@@ -106,6 +112,7 @@ class SyncStateMapper extends ClassMapperBase<SyncState> {
       protocol: data.dec(_f$protocol),
       multicastGroup: data.dec(_f$multicastGroup),
       discoveryTimeout: data.dec(_f$discoveryTimeout),
+      gossipEnabled: data.dec(_f$gossipEnabled),
       serverRunning: data.dec(_f$serverRunning),
       download: data.dec(_f$download),
     );
@@ -191,6 +198,7 @@ abstract class SyncStateCopyWith<$R, $In extends SyncState, $Out>
     ProtocolType? protocol,
     String? multicastGroup,
     int? discoveryTimeout,
+    bool? gossipEnabled,
     bool? serverRunning,
     bool? download,
   });
@@ -243,6 +251,7 @@ class _SyncStateCopyWithImpl<$R, $Out>
     ProtocolType? protocol,
     String? multicastGroup,
     int? discoveryTimeout,
+    bool? gossipEnabled,
     bool? serverRunning,
     bool? download,
   }) => $apply(
@@ -257,6 +266,7 @@ class _SyncStateCopyWithImpl<$R, $Out>
       if (protocol != null) #protocol: protocol,
       if (multicastGroup != null) #multicastGroup: multicastGroup,
       if (discoveryTimeout != null) #discoveryTimeout: discoveryTimeout,
+      if (gossipEnabled != null) #gossipEnabled: gossipEnabled,
       if (serverRunning != null) #serverRunning: serverRunning,
       if (download != null) #download: download,
     }),
@@ -273,6 +283,7 @@ class _SyncStateCopyWithImpl<$R, $Out>
     protocol: data.get(#protocol, or: $value.protocol),
     multicastGroup: data.get(#multicastGroup, or: $value.multicastGroup),
     discoveryTimeout: data.get(#discoveryTimeout, or: $value.discoveryTimeout),
+    gossipEnabled: data.get(#gossipEnabled, or: $value.gossipEnabled),
     serverRunning: data.get(#serverRunning, or: $value.serverRunning),
     download: data.get(#download, or: $value.download),
   );

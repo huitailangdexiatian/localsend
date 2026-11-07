@@ -4,10 +4,11 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:localsend_isolates/rust/api/model.dart';
-import 'package:localsend_isolates/rust/frb_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `rs_device_log`, `rs_stored_device`, `stop`
+import '../frb_generated.dart';
+import 'model.dart';
+
+// These functions are ignored because they are not marked as `pub`: `gossip_handle`, `gossip_view`, `rs_device_log`, `rs_stored_device`, `running_discovery_sync`, `stop`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DiscoveryInstance`
 
 /// Starts the discovery: binds the UDP multicast sockets on all usable
@@ -21,6 +22,12 @@ import 'package:localsend_isolates/rust/frb_generated.dart';
 /// port announced to other devices. [cert_pem] and [private_key_pem] are this
 /// device's TLS identity, sent as client certificate with every register
 /// request; [fingerprint] must be the certificate's SHA-256 fingerprint.
+///
+/// With [gossip_enabled], a gossip engine runs on top of the discovery: it
+/// periodically exchanges views of confirmed devices with a random peer (see
+/// `POST /api/localsend/v2/gossip`), so devices of other subnets — reachable
+/// by unicast, but not by multicast — spread peer-to-peer. Its confirmations
+/// enter the store and are emitted like any other discovery.
 ///
 /// Nothing is announced until [RsDiscovery::announce] is called.
 ///
@@ -44,6 +51,7 @@ Future<RsDiscovery> startDiscovery({
   required String certPem,
   required String privateKeyPem,
   required BigInt timeoutMs,
+  required bool gossipEnabled,
 }) => RustLib.instance.api.crateApiDiscoveryStartDiscovery(
   group: group,
   port: port,
@@ -59,6 +67,7 @@ Future<RsDiscovery> startDiscovery({
   certPem: certPem,
   privateKeyPem: privateKeyPem,
   timeoutMs: timeoutMs,
+  gossipEnabled: gossipEnabled,
 );
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RsDiscovery>>
@@ -101,6 +110,12 @@ abstract class RsDiscovery implements RustOpaqueInterface {
     required BigInt graceMs,
   });
 
+  /// Exchanges views with every confirmed device right away, in addition to
+  /// the periodic random-peer exchange. Used on manual refreshes, so that
+  /// cross-subnet knowledge spreads immediately instead of within the
+  /// exchange interval. Does nothing when gossip is disabled.
+  Future<void> exchangeWithAll();
+
   /// Emits a [RsStoredDevice] for every device confirmation until the
   /// discovery is stopped. Can only be listened to once.
   ///
@@ -140,10 +155,7 @@ abstract class RsDiscovery implements RustOpaqueInterface {
   Future<void> stop();
 }
 
-enum DeviceLogKind {
-  discovered,
-  updated,
-}
+enum DeviceLogKind { discovered, updated }
 
 /// An address a stored device was confirmed on and is dialed at.
 class RsDeviceChannel {
@@ -155,11 +167,7 @@ class RsDeviceChannel {
   final int port;
   final ProtocolType protocol;
 
-  const RsDeviceChannel({
-    required this.host,
-    required this.port,
-    required this.protocol,
-  });
+  const RsDeviceChannel({required this.host, required this.port, required this.protocol});
 
   @override
   int get hashCode => host.hashCode ^ port.hashCode ^ protocol.hashCode;
@@ -181,11 +189,7 @@ class RsDeviceLog {
   /// The channel the confirmation happened on.
   final RsDeviceChannel channel;
 
-  const RsDeviceLog({
-    required this.timestampMillis,
-    required this.kind,
-    required this.channel,
-  });
+  const RsDeviceLog({required this.timestampMillis, required this.kind, required this.channel});
 
   @override
   int get hashCode => timestampMillis.hashCode ^ kind.hashCode ^ channel.hashCode;

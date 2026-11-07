@@ -124,6 +124,7 @@ async fn start_tls_server_with_web(identity: &Identity, web: WebConfig) -> TestS
             pin: None,
             verify_checksums: true,
             event_tx,
+            gossip_devices: None,
         }),
         web,
         stop_rx,

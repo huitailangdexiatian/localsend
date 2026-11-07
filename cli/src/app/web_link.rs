@@ -211,6 +211,7 @@ impl App {
                 pin: None,
                 verify_checksums: true,
                 event_tx: self.server_tx.clone(),
+                gossip_devices: None,
             }),
             WebConfig {
                 mode: web_mode,

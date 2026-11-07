@@ -1,6 +1,6 @@
 use crate::http::dto_v2::{
-    InfoResponseDtoV2, PrepareUploadRequestDtoV2, PrepareUploadResponseDtoV2, RegisterDtoV2,
-    RegisterResponseDtoV2,
+    GossipEntryDtoV2, GossipRequestDtoV2, GossipResponseDtoV2, InfoResponseDtoV2,
+    PrepareUploadRequestDtoV2, PrepareUploadResponseDtoV2, RegisterDtoV2, RegisterResponseDtoV2,
 };
 use crate::http::server::common::collect_to_json::CollectToJson;
 use crate::http::server::common::error::AppError;
@@ -120,6 +120,27 @@ pub enum ServerEventV2 {
         session_id: String,
     },
 
+    /// `POST /api/localsend/v2/gossip` was received: the remote device sent
+    /// its own info plus the devices it has confirmed, so that this device
+    /// can confirm them as cross-subnet hints.
+    ///
+    /// On TLS, this event is only emitted when `info.fingerprint` matches the
+    /// SHA-256 fingerprint of the client certificate verified during the mTLS
+    /// handshake. The `entries` are hints only and must be confirmed (each
+    /// one probed, with its certificate verified) before being displayed.
+    /// The response body carries this device's own view, provided
+    /// independently by the gossip devices provider on the server config.
+    GossipReceived {
+        /// The IP address of the remote device.
+        ip: PeerIp,
+
+        /// The device information of the remote device.
+        info: RegisterDtoV2,
+
+        /// The devices the remote device has confirmed, as hints.
+        entries: Vec<GossipEntryDtoV2>,
+    },
+
     /// The listening socket failed permanently, e.g. because the OS
     /// invalidated it while the application was suspended (iOS reclaims the
     /// sockets of suspended apps). The server has stopped itself; the
@@ -219,6 +240,73 @@ pub(crate) async fn info(state: AppState) -> Result<JsonResponse<InfoResponseDto
             device_type: info.device_type,
             fingerprint: info.token,
             download,
+        },
+    })
+}
+
+/// Handles a gossip exchange: accepts the remote device's info and device
+/// hints (emitted as [ServerEventV2::GossipReceived] for the application to
+/// confirm), and answers with this device's own view of confirmed devices.
+///
+/// The view comes from the gossip devices provider on [ServerConfigV2];
+/// without one (gossip disabled) the response carries an empty list, so the
+/// exchange still works from the remote side's perspective.
+pub(crate) async fn gossip(
+    body: Incoming,
+    state: AppState,
+    client_info: RequestClientInfo,
+) -> Result<JsonResponse<GossipResponseDtoV2>, AppError> {
+    let payload = body.collect_to_json::<GossipRequestDtoV2>().await?;
+
+    // On TLS, only trust gossips whose claimed fingerprint is proven by the
+    // client certificate of the mTLS handshake, same as register.
+    let fingerprint_valid = match client_info.cert_fingerprint() {
+        Some(cert_fingerprint) => payload.info.fingerprint.to_ascii_uppercase() == cert_fingerprint,
+        None => true,
+    };
+
+    if let Some(v2) = &state.v2 {
+        if fingerprint_valid {
+            // Not awaited, same as register: a burst of exchanges must not
+            // stall the handler, and dropped hints are re-received on the
+            // next exchange, so losing one is recoverable.
+            if let Err(err) = v2.event_tx.try_send(ServerEventV2::GossipReceived {
+                ip: client_info.ip,
+                info: payload.info,
+                entries: payload.devices,
+            }) {
+                tracing::debug!("Dropped a gossip event: {err}");
+            }
+        } else {
+            tracing::warn!(
+                "Ignoring gossip from {}: claimed fingerprint does not match the client certificate",
+                client_info.ip
+            );
+        }
+    }
+
+    let devices = state
+        .v2
+        .as_ref()
+        .and_then(|v2| v2.gossip_devices.as_ref())
+        .map(|provider| provider())
+        .unwrap_or_default();
+
+    let info = state.info.lock().await.clone();
+    let download = state.web.share.download().is_some();
+
+    Ok(JsonResponse {
+        status: StatusCode::OK,
+        body: GossipResponseDtoV2 {
+            info: InfoResponseDtoV2 {
+                alias: info.alias,
+                version: PROTOCOL_VERSION_V2.to_string(),
+                device_model: info.device_model,
+                device_type: info.device_type,
+                fingerprint: info.token,
+                download,
+            },
+            devices,
         },
     })
 }

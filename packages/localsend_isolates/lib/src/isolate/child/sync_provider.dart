@@ -21,6 +21,11 @@ class SyncState with SyncStateMappable {
   final String multicastGroup;
   final int discoveryTimeout;
 
+  /// Whether the gossip engine runs on top of the discovery, exchanging
+  /// views of confirmed devices with peers so that devices of other subnets
+  /// (reachable by unicast, but not by multicast) are discovered.
+  final bool gossipEnabled;
+
   final bool serverRunning;
   final bool download;
 
@@ -35,13 +40,14 @@ class SyncState with SyncStateMappable {
     required this.protocol,
     required this.multicastGroup,
     required this.discoveryTimeout,
+    required this.gossipEnabled,
     required this.serverRunning,
     required this.download,
   });
 
   @override
   String toString() {
-    return 'SyncState(securityContext: <SecurityContext>, deviceInfo: $deviceInfo, alias: $alias, port: $port, networkWhitelist: $networkWhitelist, networkBlacklist: $networkBlacklist, protocol: $protocol, multicastGroup: $multicastGroup, discoveryTimeout: $discoveryTimeout, serverRunning: $serverRunning, download: $download)';
+    return 'SyncState(securityContext: <SecurityContext>, deviceInfo: $deviceInfo, alias: $alias, port: $port, networkWhitelist: $networkWhitelist, networkBlacklist: $networkBlacklist, protocol: $protocol, multicastGroup: $multicastGroup, discoveryTimeout: $discoveryTimeout, gossipEnabled: $gossipEnabled, serverRunning: $serverRunning, download: $download)';
   }
 }
 

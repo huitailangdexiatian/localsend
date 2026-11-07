@@ -78,6 +78,7 @@ const _networkWhitelistKey = 'ls_network_whitelist';
 const _networkBlacklistKey = 'ls_network_blacklist';
 const _timeoutKey = 'ls_timeout';
 const _multicastGroupKey = 'ls_multicast_group';
+const _gossipEnabledKey = 'ls_gossip_enabled';
 const _destinationKey = 'ls_destination';
 const _saveToGallery = 'ls_save_to_gallery';
 const _saveToHistory = 'ls_save_to_history';
@@ -378,6 +379,14 @@ class PersistenceService {
 
   Future<void> setDiscoveryTimeout(int timeout) async {
     await _prefs.setInt(_timeoutKey, timeout);
+  }
+
+  bool getGossipEnabled() {
+    return _prefs.getBool(_gossipEnabledKey) ?? true;
+  }
+
+  Future<void> setGossipEnabled(bool enabled) async {
+    await _prefs.setBool(_gossipEnabledKey, enabled);
   }
 
   bool getShareViaLinkAutoAccept() {

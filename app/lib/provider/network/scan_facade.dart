@@ -4,6 +4,7 @@ import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_isolates/isolate.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// Discovers devices in stages, cheapest first: multicast announcement and
@@ -19,6 +20,10 @@ class StartSmartScan extends AsyncGlobalAction {
     final favorites = ref.read(favoritesProvider);
     final settings = ref.read(settingsProvider);
     final networkInterfaces = ref.read(localIpProvider).localIps.take(maxInterfaces).toList();
+
+    // Spread cross-subnet knowledge right away instead of within the gossip
+    // exchange interval. Does nothing when gossip is disabled.
+    ref.redux(parentIsolateProvider).dispatch(IsolateDiscoveryExchangeAction());
 
     await ref
         .redux(nearbyDevicesProvider)

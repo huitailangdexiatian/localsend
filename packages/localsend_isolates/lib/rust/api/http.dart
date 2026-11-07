@@ -5,10 +5,11 @@
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
-import 'package:localsend_isolates/rust/api/cancel.dart';
-import 'package:localsend_isolates/rust/api/model.dart';
-import 'package:localsend_isolates/rust/api/stream.dart';
-import 'package:localsend_isolates/rust/frb_generated.dart';
+
+import '../frb_generated.dart';
+import 'cancel.dart';
+import 'model.dart';
+import 'stream.dart';
 
 part 'http.freezed.dart';
 
@@ -78,19 +79,13 @@ abstract class RsHttpClient implements RustOpaqueInterface {
   });
 }
 
-enum LsHttpClientVersion {
-  v2,
-  v3,
-}
+enum LsHttpClientVersion { v2, v3 }
 
 class PrepareUploadResult {
   final int statusCode;
   final PrepareUploadResponseDto? response;
 
-  const PrepareUploadResult({
-    required this.statusCode,
-    this.response,
-  });
+  const PrepareUploadResult({required this.statusCode, this.response});
 
   @override
   int get hashCode => statusCode.hashCode ^ response.hashCode;
@@ -105,10 +100,7 @@ class ResultWithPublicKeyRegisterResponseDto {
   final String? publicKey;
   final RegisterResponseDto body;
 
-  const ResultWithPublicKeyRegisterResponseDto({
-    this.publicKey,
-    required this.body,
-  });
+  const ResultWithPublicKeyRegisterResponseDto({this.publicKey, required this.body});
 
   @override
   int get hashCode => publicKey.hashCode ^ body.hashCode;
@@ -123,22 +115,11 @@ class ResultWithPublicKeyRegisterResponseDto {
 sealed class RsHttpClientError with _$RsHttpClientError implements FrbException {
   const RsHttpClientError._();
 
-  const factory RsHttpClientError.statusCode({
-    required int status,
-    String? message,
-  }) = RsHttpClientError_StatusCode;
-  const factory RsHttpClientError.reqwest(
-    String field0,
-  ) = RsHttpClientError_Reqwest;
-  const factory RsHttpClientError.json(
-    String field0,
-  ) = RsHttpClientError_Json;
-  const factory RsHttpClientError.io(
-    String field0,
-  ) = RsHttpClientError_Io;
-  const factory RsHttpClientError.other(
-    String field0,
-  ) = RsHttpClientError_Other;
+  const factory RsHttpClientError.statusCode({required int status, String? message}) = RsHttpClientError_StatusCode;
+  const factory RsHttpClientError.reqwest(String field0) = RsHttpClientError_Reqwest;
+  const factory RsHttpClientError.json(String field0) = RsHttpClientError_Json;
+  const factory RsHttpClientError.io(String field0) = RsHttpClientError_Io;
+  const factory RsHttpClientError.other(String field0) = RsHttpClientError_Other;
 }
 
 @freezed
@@ -146,12 +127,8 @@ sealed class RsUploadEvent with _$RsUploadEvent {
   const RsUploadEvent._();
 
   /// The upload progress as a fraction (0.0 to 1.0). Throttled.
-  const factory RsUploadEvent.progress({
-    required double progress,
-  }) = RsUploadEvent_Progress;
+  const factory RsUploadEvent.progress({required double progress}) = RsUploadEvent_Progress;
 
   /// The upload failed. Always the last event of the stream.
-  const factory RsUploadEvent.failed({
-    required RsHttpClientError error,
-  }) = RsUploadEvent_Failed;
+  const factory RsUploadEvent.failed({required RsHttpClientError error}) = RsUploadEvent_Failed;
 }

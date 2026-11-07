@@ -1046,6 +1046,8 @@ class Translations$settingsTab$network$zh_CN extends Translations$settingsTab$ne
   String get multicastGroup => '多播';
   @override
   String multicastGroupWarning({required Object defaultMulticast}) => '由于正在使用自定义多播地址，你可能不会被其他设备检测到。（默认地址：${defaultMulticast}）';
+  @override
+  String get gossip => '发现其它网段的设备（gossip）';
 }
 
 // Path: settingsTab.other

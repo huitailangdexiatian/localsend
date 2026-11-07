@@ -5,8 +5,9 @@
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
-import 'package:localsend_isolates/rust/api/cancel.dart';
-import 'package:localsend_isolates/rust/frb_generated.dart';
+
+import '../frb_generated.dart';
+import 'cancel.dart';
 
 part 'crypto.freezed.dart';
 
@@ -43,10 +44,7 @@ class KeyPair {
   final String privateKey;
   final String publicKey;
 
-  const KeyPair({
-    required this.privateKey,
-    required this.publicKey,
-  });
+  const KeyPair({required this.privateKey, required this.publicKey});
 
   @override
   int get hashCode => privateKey.hashCode ^ publicKey.hashCode;
@@ -63,15 +61,11 @@ sealed class RsHashFileEvent with _$RsHashFileEvent {
 
   /// Cumulative number of bytes hashed so far.
   /// Throttled, so not every hashed chunk is reported.
-  const factory RsHashFileEvent.progress({
-    required BigInt bytes,
-  }) = RsHashFileEvent_Progress;
+  const factory RsHashFileEvent.progress({required BigInt bytes}) = RsHashFileEvent_Progress;
 
   /// Hashing has finished; [hash] is the checksum, encoded as lowercase hex.
   /// Always the last event of the stream.
-  const factory RsHashFileEvent.done({
-    required String hash,
-  }) = RsHashFileEvent_Done;
+  const factory RsHashFileEvent.done({required String hash}) = RsHashFileEvent_Done;
 }
 
 class SecurityContext {
@@ -80,12 +74,7 @@ class SecurityContext {
   final String certificate;
   final String certificateHash;
 
-  const SecurityContext({
-    required this.privateKey,
-    required this.publicKey,
-    required this.certificate,
-    required this.certificateHash,
-  });
+  const SecurityContext({required this.privateKey, required this.publicKey, required this.certificate, required this.certificateHash});
 
   @override
   int get hashCode => privateKey.hashCode ^ publicKey.hashCode ^ certificate.hashCode ^ certificateHash.hashCode;

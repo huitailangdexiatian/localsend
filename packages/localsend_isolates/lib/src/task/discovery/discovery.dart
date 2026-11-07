@@ -76,6 +76,7 @@ class DiscoveryService {
           certPem: syncState.securityContext.certificate,
           privateKeyPem: syncState.securityContext.privateKey,
           timeoutMs: BigInt.from(syncState.discoveryTimeout),
+          gossipEnabled: syncState.gossipEnabled,
         );
       } catch (e) {
         _logger.warning('Could not start discovery (group: ${syncState.multicastGroup}, port: ${syncState.port})', e);
@@ -144,6 +145,20 @@ class DiscoveryService {
 
     _logger.info('Announce via UDP');
     await discovery.announce();
+  }
+
+  /// Exchanges views of confirmed devices with every confirmed peer right
+  /// away, in addition to the periodic random-peer exchange. Used on manual
+  /// refreshes, so that cross-subnet knowledge spreads immediately.
+  /// Does nothing when gossip is disabled or the discovery is not running.
+  Future<void> exchangeWithAll() async {
+    final discovery = _discovery;
+    if (discovery == null) {
+      _logger.info('Discovery is not running, skipping gossip exchange');
+      return;
+    }
+
+    await discovery.exchangeWithAll();
   }
 
   /// Scans the subnet of [networkInterface] by probing every host over HTTP,

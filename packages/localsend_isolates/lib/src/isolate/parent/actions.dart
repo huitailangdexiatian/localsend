@@ -188,6 +188,30 @@ class IsolateDiscoveryRestartAction extends ReduxAction<IsolateController, Paren
   }
 }
 
+/// Exchanges views of confirmed devices with every confirmed peer right
+/// away, in addition to the periodic gossip exchange. Does nothing when
+/// gossip is disabled.
+class IsolateDiscoveryExchangeAction extends ReduxAction<IsolateController, ParentIsolateState> {
+  @override
+  ParentIsolateState reduce() {
+    final connection = state.discovery;
+    if (connection == null) {
+      return state;
+    }
+
+    connection.sendToIsolate(
+      SendToIsolateData(
+        syncState: null,
+        data: IsolateTask(
+          data: DiscoveryExchangeTask(),
+        ),
+      ),
+    );
+
+    return state;
+  }
+}
+
 /// Feeds a device confirmed outside of the discovery into the discovery store,
 /// e.g. one that registered with this device's HTTP server. The device comes
 /// back on the [IsolateDiscoveryListenAction] stream.

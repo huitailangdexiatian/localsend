@@ -165,6 +165,86 @@ pub struct InfoResponseDtoV2 {
     pub download: bool,
 }
 
+/// A device as known by a gossip peer, sent to POST /api/localsend/v2/gossip.
+///
+/// Entries are hints only: the receiver must confirm each one with a register
+/// request before displaying the device. The `fingerprint` of an HTTPS device
+/// is proven by its certificate during that confirmation; without TLS it is
+/// self-claimed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GossipEntryDtoV2 {
+    /// Fingerprint identifying the device.
+    pub fingerprint: String,
+
+    /// The display name of the device, as last confirmed by the sender.
+    pub alias: String,
+
+    /// Protocol version (major.minor) implemented by the device.
+    pub version: String,
+
+    /// Device model (e.g., "Samsung", "Windows"). Optional.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_model: Option<String>,
+
+    /// Device type category. Optional.
+    #[serde(
+        default,
+        with = "device_type_v2",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub device_type: Option<DeviceType>,
+
+    /// Whether the device's download API is active.
+    #[serde(default)]
+    pub download: bool,
+
+    /// The host the sender last confirmed the device on: an IP address, or
+    /// the scoped form `fe80::1%3` for link-local IPv6.
+    pub host: String,
+
+    /// The port of the device's HTTP server.
+    pub port: u16,
+
+    /// Whether the device's HTTP server uses TLS.
+    #[serde(with = "protocol_type_v2")]
+    pub protocol: ProtocolType,
+
+    /// When the sender last confirmed the device, in milliseconds since the
+    /// Unix epoch. `0` when unknown; receivers use it to prefer fresh hints.
+    #[serde(default)]
+    pub seen_at_millis: u64,
+}
+
+/// Gossip exchange request body for v2.2 protocol.
+///
+/// Sent to POST /api/localsend/v2/gossip: the sender offers its own info plus
+/// the devices it has confirmed. The requesting device never appears in
+/// `devices`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GossipRequestDtoV2 {
+    /// The gossiping device's own information, same shape as register.
+    pub info: RegisterDtoV2,
+
+    /// The devices the gossiping device has confirmed, excluding itself.
+    pub devices: Vec<GossipEntryDtoV2>,
+}
+
+/// Gossip exchange response body for v2.2 protocol.
+///
+/// Answered by POST /api/localsend/v2/gossip with the responder's identity
+/// and its view of confirmed devices, excluding the requester.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GossipResponseDtoV2 {
+    /// The responder's own information, same shape as an info response.
+    pub info: InfoResponseDtoV2,
+
+    /// The devices the responder has confirmed, excluding the requester.
+    pub devices: Vec<GossipEntryDtoV2>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

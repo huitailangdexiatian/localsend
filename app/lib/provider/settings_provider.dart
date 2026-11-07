@@ -24,7 +24,8 @@ final settingsProvider = NotifierProvider<SettingsService, SettingsState>(
     if (_listEq(syncState.networkWhitelist, next.networkWhitelist) &&
         _listEq(syncState.networkBlacklist, next.networkBlacklist) &&
         syncState.multicastGroup == next.multicastGroup &&
-        syncState.discoveryTimeout == next.discoveryTimeout) {
+        syncState.discoveryTimeout == next.discoveryTimeout &&
+        syncState.gossipEnabled == next.gossipEnabled) {
       return;
     }
 
@@ -36,6 +37,7 @@ final settingsProvider = NotifierProvider<SettingsService, SettingsState>(
             networkBlacklist: next.networkBlacklist,
             multicastGroup: next.multicastGroup,
             discoveryTimeout: next.discoveryTimeout,
+            gossipEnabled: next.gossipEnabled,
           ),
         );
   },
@@ -78,6 +80,7 @@ class SettingsService extends PureNotifier<SettingsState> {
     createChecksums: _persistence.getCreateChecksums(),
     verifyChecksums: _persistence.getVerifyChecksums(),
     discoveryTimeout: _persistence.getDiscoveryTimeout(),
+    gossipEnabled: _persistence.getGossipEnabled(),
     advancedSettings: _persistence.getAdvancedSettingsEnabled(),
   );
 
@@ -155,6 +158,13 @@ class SettingsService extends PureNotifier<SettingsState> {
     await _persistence.setMulticastGroup(group);
     state = state.copyWith(
       multicastGroup: group,
+    );
+  }
+
+  Future<void> setGossipEnabled(bool enabled) async {
+    await _persistence.setGossipEnabled(enabled);
+    state = state.copyWith(
+      gossipEnabled: enabled,
     );
   }
 

@@ -143,6 +143,7 @@ async fn start_test_server(
             pin: None,
             verify_checksums: true,
             event_tx: v2_event_tx,
+            gossip_devices: None,
         }),
         web_config,
         stop_rx,
@@ -313,6 +314,7 @@ async fn test_upload_page() {
             pin: None,
             verify_checksums: true,
             event_tx: v2_event_tx,
+            gossip_devices: None,
         }),
         WebConfig {
             mode: WebMode::Upload,
@@ -368,6 +370,7 @@ async fn test_custom_web_pages() {
             pin: None,
             verify_checksums: true,
             event_tx: v2_event_tx,
+            gossip_devices: None,
         }),
         WebConfig {
             mode: WebMode::Upload,

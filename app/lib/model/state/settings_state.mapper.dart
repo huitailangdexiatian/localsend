@@ -169,6 +169,11 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     'discoveryTimeout',
     _$discoveryTimeout,
   );
+  static bool _$gossipEnabled(SettingsState v) => v.gossipEnabled;
+  static const Field<SettingsState, bool> _f$gossipEnabled = Field(
+    'gossipEnabled',
+    _$gossipEnabled,
+  );
   static bool _$advancedSettings(SettingsState v) => v.advancedSettings;
   static const Field<SettingsState, bool> _f$advancedSettings = Field(
     'advancedSettings',
@@ -207,6 +212,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #createChecksums: _f$createChecksums,
     #verifyChecksums: _f$verifyChecksums,
     #discoveryTimeout: _f$discoveryTimeout,
+    #gossipEnabled: _f$gossipEnabled,
     #advancedSettings: _f$advancedSettings,
   };
 
@@ -242,6 +248,7 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       createChecksums: data.dec(_f$createChecksums),
       verifyChecksums: data.dec(_f$verifyChecksums),
       discoveryTimeout: data.dec(_f$discoveryTimeout),
+      gossipEnabled: data.dec(_f$gossipEnabled),
       advancedSettings: data.dec(_f$advancedSettings),
     );
   }
@@ -343,6 +350,7 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     bool? createChecksums,
     bool? verifyChecksums,
     int? discoveryTimeout,
+    bool? gossipEnabled,
     bool? advancedSettings,
   });
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -406,6 +414,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     bool? createChecksums,
     bool? verifyChecksums,
     int? discoveryTimeout,
+    bool? gossipEnabled,
     bool? advancedSettings,
   }) => $apply(
     FieldCopyWithData({
@@ -443,6 +452,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
       if (createChecksums != null) #createChecksums: createChecksums,
       if (verifyChecksums != null) #verifyChecksums: verifyChecksums,
       if (discoveryTimeout != null) #discoveryTimeout: discoveryTimeout,
+      if (gossipEnabled != null) #gossipEnabled: gossipEnabled,
       if (advancedSettings != null) #advancedSettings: advancedSettings,
     }),
   );
@@ -490,6 +500,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     createChecksums: data.get(#createChecksums, or: $value.createChecksums),
     verifyChecksums: data.get(#verifyChecksums, or: $value.verifyChecksums),
     discoveryTimeout: data.get(#discoveryTimeout, or: $value.discoveryTimeout),
+    gossipEnabled: data.get(#gossipEnabled, or: $value.gossipEnabled),
     advancedSettings: data.get(#advancedSettings, or: $value.advancedSettings),
   );
 

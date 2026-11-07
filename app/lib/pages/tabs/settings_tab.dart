@@ -29,6 +29,7 @@ import 'package:localsend_app/widget/labeled_checkbox.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:localsend_isolates/constants.dart';
+import 'package:localsend_isolates/isolate.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
@@ -498,6 +499,17 @@ class SettingsTab extends StatelessWidget {
                         await ref.notifier(settingsProvider).setMulticastGroup(s);
                       },
                     ),
+                  ),
+                if (vm.advanced)
+                  _BooleanEntry(
+                    label: t.settingsTab.network.gossip,
+                    value: vm.settings.gossipEnabled,
+                    onChanged: (b) async {
+                      await ref.notifier(settingsProvider).setGossipEnabled(b);
+                      // Restart the discovery so the change takes effect
+                      // immediately instead of on the next server restart.
+                      ref.redux(parentIsolateProvider).dispatch(IsolateDiscoveryRestartAction());
+                    },
                   ),
                 AnimatedCrossFade(
                   crossFadeState: vm.settings.port != defaultPort ? CrossFadeState.showSecond : CrossFadeState.showFirst,

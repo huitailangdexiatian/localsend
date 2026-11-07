@@ -37,6 +37,11 @@ class DiscoveryListenTask implements DiscoveryTask {}
 /// They will respond by registering with this device's HTTP server.
 class DiscoveryAnnouncementTask implements DiscoveryTask {}
 
+/// Exchanges views of confirmed devices with every confirmed peer right
+/// away, in addition to the periodic gossip exchange. Does nothing when
+/// gossip is disabled.
+class DiscoveryExchangeTask implements DiscoveryTask {}
+
 /// Restarts the discovery, e.g. after the port or the network settings changed.
 class DiscoveryRestartTask implements DiscoveryTask {}
 
@@ -122,6 +127,9 @@ Future<void> setupDiscoveryIsolate(
           return;
         case DiscoveryAnnouncementTask():
           await ref.read(discoveryProvider).sendAnnouncement();
+          break;
+        case DiscoveryExchangeTask():
+          await ref.read(discoveryProvider).exchangeWithAll();
           break;
         case DiscoveryRestartTask():
           ref.read(discoveryProvider).restartListener();

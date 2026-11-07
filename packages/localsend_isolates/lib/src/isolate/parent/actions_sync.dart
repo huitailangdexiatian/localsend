@@ -53,12 +53,14 @@ class IsolateSyncSettingsAction extends ReduxAction<IsolateController, ParentIso
   final List<String>? networkBlacklist;
   final String multicastGroup;
   final int discoveryTimeout;
+  final bool gossipEnabled;
 
   IsolateSyncSettingsAction({
     required this.networkWhitelist,
     required this.networkBlacklist,
     required this.multicastGroup,
     required this.discoveryTimeout,
+    required this.gossipEnabled,
   });
 
   @override
@@ -70,6 +72,7 @@ class IsolateSyncSettingsAction extends ReduxAction<IsolateController, ParentIso
           networkBlacklist: networkBlacklist,
           multicastGroup: multicastGroup,
           discoveryTimeout: discoveryTimeout,
+          gossipEnabled: gossipEnabled,
         ),
       ),
     );

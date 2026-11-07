@@ -9,6 +9,7 @@ pub mod web;
 pub use peer_ip::PeerIp;
 
 use crate::crypto::cert::{fingerprint_from_cert_der, public_key_from_cert_der};
+use crate::http::dto_v2::GossipEntryDtoV2;
 use crate::http::server::internal::{InternalConfig, InternalState};
 use crate::http::server::v2::ServerEventV2;
 use crate::http::server::web::{WebConfig, WebShare};
@@ -36,6 +37,12 @@ use tokio_util::sync::CancellationToken;
 use tokio_util::task::TaskTracker;
 use web::WebState;
 
+/// Provides this device's view of confirmed devices, answered to gossip
+/// exchanges (see `POST /api/localsend/v2/gossip`). Called once per incoming
+/// exchange, so it must be cheap and non-blocking. Returning the empty list
+/// disables offering devices, while the exchange itself still succeeds.
+pub type GossipDevicesProvider = Arc<dyn Fn() -> Vec<GossipEntryDtoV2> + Send + Sync>;
+
 /// Configuration for the v2 (legacy) protocol endpoints.
 pub struct ServerConfigV2 {
     /// Optional PIN that senders must provide via the `pin` query parameter.
@@ -48,6 +55,10 @@ pub struct ServerConfigV2 {
 
     /// Channel on which the server emits events that must be handled by the application.
     pub event_tx: mpsc::Sender<ServerEventV2>,
+
+    /// The devices offered in gossip responses. `None` answers exchanges with
+    /// an empty list; incoming hints are still emitted as events.
+    pub gossip_devices: Option<GossipDevicesProvider>,
 }
 
 /// Runtime state of the v2 protocol endpoints.
@@ -60,6 +71,9 @@ pub(crate) struct V2State {
 
     /// Channel on which server events are emitted to the application.
     pub(crate) event_tx: mpsc::Sender<ServerEventV2>,
+
+    /// The devices offered in gossip responses, see [ServerConfigV2].
+    pub(crate) gossip_devices: Option<GossipDevicesProvider>,
 
     /// The single upload session slot. Only one session can be active at a time.
     pub(crate) session: Mutex<Option<SessionStateV2>>,
@@ -104,6 +118,7 @@ impl AppState {
                 pin: config.pin,
                 verify_checksums: config.verify_checksums,
                 event_tx: config.event_tx,
+                gossip_devices: config.gossip_devices,
                 session: Mutex::new(None),
                 pin_attempts: Mutex::new(LruCache::new(NonZeroUsize::new(200).unwrap())),
             })
@@ -640,6 +655,15 @@ async fn handle_request_inner(mut req: Request<Incoming>) -> Result<Response<Box
             }
 
             Ok(v2::register(req.into_body(), state, client_info)
+                .await?
+                .into_response())
+        }
+        (&Method::POST, "/api/localsend/v2/gossip") => {
+            if !v2_enabled {
+                return Err(AppError::Status(StatusCode::NOT_FOUND));
+            }
+
+            Ok(v2::gossip(req.into_body(), state, client_info)
                 .await?
                 .into_response())
         }

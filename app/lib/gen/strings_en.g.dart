@@ -1217,6 +1217,9 @@ class Translations$settingsTab$network$en {
   /// en: 'You might not be detected by other devices because you are using a custom multicast address. (default: {defaultMulticast})'
   String multicastGroupWarning({required Object defaultMulticast}) =>
       'You might not be detected by other devices because you are using a custom multicast address. (default: ${defaultMulticast})';
+
+  /// en: 'Discover devices in other subnets (gossip)'
+  String get gossip => 'Discover devices in other subnets (gossip)';
 }
 
 // Path: settingsTab.other
