@@ -67,6 +67,7 @@ class SettingsTabController extends ReduxNotifier<SettingsTabVm> {
       portController: TextEditingController(text: _settingsService.state.port.toString()),
       timeoutController: TextEditingController(text: _settingsService.state.discoveryTimeout.toString()),
       multicastController: TextEditingController(text: _settingsService.state.multicastGroup),
+      signalingController: TextEditingController(text: _settingsService.state.signalingServer ?? ''),
       settings: _settingsService.state,
       serverState: _serverService.state,
       deviceInfo: _initialDeviceInfo,

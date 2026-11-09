@@ -82,6 +82,8 @@ class SettingsService extends PureNotifier<SettingsState> {
     discoveryTimeout: _persistence.getDiscoveryTimeout(),
     gossipEnabled: _persistence.getGossipEnabled(),
     advancedSettings: _persistence.getAdvancedSettingsEnabled(),
+    useWebRtc: _persistence.getWebRtcEnabled(),
+    signalingServer: _persistence.getSignalingServers()?.firstOrNull,
   );
 
   Future<void> setAlias(String alias) async {
@@ -116,6 +118,21 @@ class SettingsService extends PureNotifier<SettingsState> {
     await _persistence.setAdvancedSettingsEnabled(isEnabled);
     state = state.copyWith(
       advancedSettings: isEnabled,
+    );
+  }
+
+  Future<void> setUseWebRtc(bool enabled) async {
+    await _persistence.setWebRtcEnabled(enabled);
+    state = state.copyWith(
+      useWebRtc: enabled,
+    );
+  }
+
+  Future<void> setSignalingServer(String? server) async {
+    final normalized = (server == null || server.trim().isEmpty) ? null : server.trim();
+    await _persistence.setSignalingServers(normalized == null ? [] : [normalized]);
+    state = state.copyWith(
+      signalingServer: normalized,
     );
   }
 

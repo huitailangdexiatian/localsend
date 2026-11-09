@@ -1220,6 +1220,18 @@ class Translations$settingsTab$network$en {
 
   /// en: 'Discover devices in other subnets (gossip)'
   String get gossip => 'Discover devices in other subnets (gossip)';
+
+  /// en: 'Discover across subnets (WebRTC)'
+  String get webRtc => 'Discover across subnets (WebRTC)';
+
+  /// en: 'Uses a signaling server to find devices in other networks.'
+  String get webRtcHint => 'Uses a signaling server to find devices in other networks.';
+
+  /// en: 'Signaling server'
+  String get signalingServer => 'Signaling server';
+
+  /// en: 'Example: ws://host:port/v1/ws. Restart the app after changing.'
+  String get signalingServerHint => 'Example: ws://host:port/v1/ws. Restart the app after changing.';
 }
 
 // Path: settingsTab.other

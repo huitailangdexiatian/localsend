@@ -235,8 +235,8 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     _logger.warning('Starting discovery listener failed', e);
   }
 
-  // ignore: dead_code
-  if (webRTCEnabled) {
+  final currentSettings = ref.read(settingsProvider);
+  if (currentSettings.useWebRtc && (currentSettings.signalingServer?.isNotEmpty ?? false)) {
     ref.redux(signalingProvider).dispatch(SetupSignalingConnection());
   }
 

@@ -179,6 +179,16 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     'advancedSettings',
     _$advancedSettings,
   );
+  static bool _$useWebRtc(SettingsState v) => v.useWebRtc;
+  static const Field<SettingsState, bool> _f$useWebRtc = Field(
+    'useWebRtc',
+    _$useWebRtc,
+  );
+  static String? _$signalingServer(SettingsState v) => v.signalingServer;
+  static const Field<SettingsState, String> _f$signalingServer = Field(
+    'signalingServer',
+    _$signalingServer,
+  );
 
   @override
   final MappableFields<SettingsState> fields = const {
@@ -214,6 +224,8 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #discoveryTimeout: _f$discoveryTimeout,
     #gossipEnabled: _f$gossipEnabled,
     #advancedSettings: _f$advancedSettings,
+    #useWebRtc: _f$useWebRtc,
+    #signalingServer: _f$signalingServer,
   };
 
   static SettingsState _instantiate(DecodingData data) {
@@ -250,6 +262,8 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       discoveryTimeout: data.dec(_f$discoveryTimeout),
       gossipEnabled: data.dec(_f$gossipEnabled),
       advancedSettings: data.dec(_f$advancedSettings),
+      useWebRtc: data.dec(_f$useWebRtc),
+      signalingServer: data.dec(_f$signalingServer),
     );
   }
 
@@ -352,6 +366,8 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     int? discoveryTimeout,
     bool? gossipEnabled,
     bool? advancedSettings,
+    bool? useWebRtc,
+    String? signalingServer,
   });
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -416,6 +432,8 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     int? discoveryTimeout,
     bool? gossipEnabled,
     bool? advancedSettings,
+    bool? useWebRtc,
+    Object? signalingServer = $none,
   }) => $apply(
     FieldCopyWithData({
       if (showToken != null) #showToken: showToken,
@@ -454,6 +472,8 @@ class _SettingsStateCopyWithImpl<$R, $Out>
       if (discoveryTimeout != null) #discoveryTimeout: discoveryTimeout,
       if (gossipEnabled != null) #gossipEnabled: gossipEnabled,
       if (advancedSettings != null) #advancedSettings: advancedSettings,
+      if (useWebRtc != null) #useWebRtc: useWebRtc,
+      if (signalingServer != $none) #signalingServer: signalingServer,
     }),
   );
   @override
@@ -502,6 +522,8 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     discoveryTimeout: data.get(#discoveryTimeout, or: $value.discoveryTimeout),
     gossipEnabled: data.get(#gossipEnabled, or: $value.gossipEnabled),
     advancedSettings: data.get(#advancedSettings, or: $value.advancedSettings),
+    useWebRtc: data.get(#useWebRtc, or: $value.useWebRtc),
+    signalingServer: data.get(#signalingServer, or: $value.signalingServer),
   );
 
   @override

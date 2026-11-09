@@ -330,6 +330,24 @@ class MockPersistenceService extends _i1.Mock
           as _i5.Future<void>);
 
   @override
+  bool getWebRtcEnabled() =>
+      (super.noSuchMethod(
+            Invocation.method(#getWebRtcEnabled, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  _i5.Future<void> setWebRtcEnabled(bool? enabled) =>
+      (super.noSuchMethod(
+            Invocation.method(#setWebRtcEnabled, [enabled]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   bool getShareViaLinkAutoAccept() =>
       (super.noSuchMethod(
             Invocation.method(#getShareViaLinkAutoAccept, []),

@@ -41,6 +41,8 @@ class SettingsState with SettingsStateMappable {
   final int discoveryTimeout;
   final bool gossipEnabled; // exchange device views with peers, so other subnets are discovered
   final bool advancedSettings;
+  final bool useWebRtc; // discover devices in other subnets via a WebRTC signaling server
+  final String? signalingServer; // null = not configured
 
   const SettingsState({
     required this.showToken,
@@ -75,5 +77,7 @@ class SettingsState with SettingsStateMappable {
     required this.discoveryTimeout,
     required this.gossipEnabled,
     required this.advancedSettings,
+    required this.useWebRtc,
+    required this.signalingServer,
   });
 }

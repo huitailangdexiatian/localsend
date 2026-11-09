@@ -149,7 +149,11 @@
       "encryption": "加密",
       "multicastGroup": "多播",
       "multicastGroupWarning": "由于正在使用自定义多播地址，你可能不会被其他设备检测到。（默认地址：{defaultMulticast}）",
-      "gossip": "发现其它网段的设备（gossip）"
+      "gossip": "发现其它网段的设备（gossip）",
+      "webRtc": "跨网段发现（WebRTC）",
+      "webRtcHint": "通过信令服务器发现其他网络中的设备。",
+      "signalingServer": "信令服务器",
+      "signalingServerHint": "例如 ws://host:port/v1/ws，修改后需重启应用。"
     },
     "other": {
       "title": "其他",

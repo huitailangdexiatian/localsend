@@ -151,7 +151,11 @@
       "encryption": "Encryption",
       "multicastGroup": "Multicast address",
       "multicastGroupWarning": "You might not be detected by other devices because you are using a custom multicast address. (default: {defaultMulticast})",
-      "gossip": "Discover devices in other subnets (gossip)"
+      "gossip": "Discover devices in other subnets (gossip)",
+      "webRtc": "Discover across subnets (WebRTC)",
+      "webRtcHint": "Uses a signaling server to find devices in other networks.",
+      "signalingServer": "Signaling server",
+      "signalingServerHint": "Example: ws://host:port/v1/ws. Restart the app after changing."
     },
     "other": {
       "title": "Other",

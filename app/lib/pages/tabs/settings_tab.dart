@@ -511,6 +511,27 @@ class SettingsTab extends StatelessWidget {
                       ref.redux(parentIsolateProvider).dispatch(IsolateDiscoveryRestartAction());
                     },
                   ),
+                if (vm.advanced)
+                  _BooleanEntry(
+                    label: t.settingsTab.network.webRtc,
+                    value: vm.settings.useWebRtc,
+                    description: t.settingsTab.network.webRtcHint,
+                    onChanged: (b) async {
+                      await ref.notifier(settingsProvider).setUseWebRtc(b);
+                    },
+                  ),
+                if (vm.advanced)
+                  _SettingsEntry(
+                    label: t.settingsTab.network.signalingServer,
+                    description: t.settingsTab.network.signalingServerHint,
+                    child: TextFieldTv(
+                      name: t.settingsTab.network.signalingServer,
+                      controller: vm.signalingController,
+                      onChanged: (s) async {
+                        await ref.notifier(settingsProvider).setSignalingServer(s);
+                      },
+                    ),
+                  ),
                 AnimatedCrossFade(
                   crossFadeState: vm.settings.port != defaultPort ? CrossFadeState.showSecond : CrossFadeState.showFirst,
                   duration: const Duration(milliseconds: 200),

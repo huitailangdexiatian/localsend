@@ -97,6 +97,7 @@ const _createChecksums = 'ls_create_checksums';
 const _verifyChecksums = 'ls_verify_checksums';
 const _advancedSettingsKey = 'ls_advanced_settings';
 const _whatsNewKey = 'ls_whats_new';
+const _webRtcEnabledKey = 'ls_webrtc_enabled';
 
 final persistenceProvider = Provider<PersistenceService>((ref) {
   throw Exception('persistenceProvider not initialized');
@@ -387,6 +388,14 @@ class PersistenceService {
 
   Future<void> setGossipEnabled(bool enabled) async {
     await _prefs.setBool(_gossipEnabledKey, enabled);
+  }
+
+  bool getWebRtcEnabled() {
+    return _prefs.getBool(_webRtcEnabledKey) ?? false;
+  }
+
+  Future<void> setWebRtcEnabled(bool enabled) async {
+    await _prefs.setBool(_webRtcEnabledKey, enabled);
   }
 
   bool getShareViaLinkAutoAccept() {
