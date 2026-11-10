@@ -4,9 +4,8 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-
-import '../frb_generated.dart';
-import 'model.dart';
+import 'package:localsend_isolates/rust/api/model.dart';
+import 'package:localsend_isolates/rust/frb_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `gossip_handle`, `gossip_view`, `rs_device_log`, `rs_stored_device`, `running_discovery_sync`, `stop`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DiscoveryInstance`
@@ -155,7 +154,10 @@ abstract class RsDiscovery implements RustOpaqueInterface {
   Future<void> stop();
 }
 
-enum DeviceLogKind { discovered, updated }
+enum DeviceLogKind {
+  discovered,
+  updated,
+}
 
 /// An address a stored device was confirmed on and is dialed at.
 class RsDeviceChannel {
@@ -167,7 +169,11 @@ class RsDeviceChannel {
   final int port;
   final ProtocolType protocol;
 
-  const RsDeviceChannel({required this.host, required this.port, required this.protocol});
+  const RsDeviceChannel({
+    required this.host,
+    required this.port,
+    required this.protocol,
+  });
 
   @override
   int get hashCode => host.hashCode ^ port.hashCode ^ protocol.hashCode;
@@ -189,7 +195,11 @@ class RsDeviceLog {
   /// The channel the confirmation happened on.
   final RsDeviceChannel channel;
 
-  const RsDeviceLog({required this.timestampMillis, required this.kind, required this.channel});
+  const RsDeviceLog({
+    required this.timestampMillis,
+    required this.kind,
+    required this.channel,
+  });
 
   @override
   int get hashCode => timestampMillis.hashCode ^ kind.hashCode ^ channel.hashCode;

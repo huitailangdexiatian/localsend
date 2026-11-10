@@ -2522,7 +2522,7 @@ fn wire__crate__api__webrtc__RtcReceiveController_send_selection_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RTCReceiveController>,
             >>::sse_decode(&mut deserializer);
-            let api_selection = <std::collections::HashSet<String>>::sse_decode(&mut deserializer);
+            let api_selection = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -3440,6 +3440,10 @@ const _: fn() = || {
         let _: Option<String> = ClientInfo.device_model;
         let _: Option<crate::api::model::DeviceType> = ClientInfo.device_type;
         let _: String = ClientInfo.token;
+        let _: Option<String> = ClientInfo.http_ip;
+        let _: Option<u16> = ClientInfo.http_port;
+        let _: Option<bool> = ClientInfo.https;
+        let _: Option<String> = ClientInfo.fingerprint;
     }
     {
         let ClientInfoWithoutId = None::<crate::api::webrtc::ClientInfoWithoutId>.unwrap();
@@ -3448,6 +3452,10 @@ const _: fn() = || {
         let _: Option<String> = ClientInfoWithoutId.device_model;
         let _: Option<crate::api::model::DeviceType> = ClientInfoWithoutId.device_type;
         let _: String = ClientInfoWithoutId.token;
+        let _: Option<String> = ClientInfoWithoutId.http_ip;
+        let _: Option<u16> = ClientInfoWithoutId.http_port;
+        let _: Option<bool> = ClientInfoWithoutId.https;
+        let _: Option<String> = ClientInfoWithoutId.fingerprint;
     }
     {
         let FileDto = None::<crate::api::model::FileDto>.unwrap();
@@ -4065,6 +4073,10 @@ impl SseDecode for crate::api::webrtc::ClientInfo {
         let mut var_deviceModel = <Option<String>>::sse_decode(deserializer);
         let mut var_deviceType = <Option<crate::api::model::DeviceType>>::sse_decode(deserializer);
         let mut var_token = <String>::sse_decode(deserializer);
+        let mut var_httpIp = <Option<String>>::sse_decode(deserializer);
+        let mut var_httpPort = <Option<u16>>::sse_decode(deserializer);
+        let mut var_https = <Option<bool>>::sse_decode(deserializer);
+        let mut var_fingerprint = <Option<String>>::sse_decode(deserializer);
         return crate::api::webrtc::ClientInfo {
             id: var_id,
             alias: var_alias,
@@ -4072,6 +4084,10 @@ impl SseDecode for crate::api::webrtc::ClientInfo {
             device_model: var_deviceModel,
             device_type: var_deviceType,
             token: var_token,
+            http_ip: var_httpIp,
+            http_port: var_httpPort,
+            https: var_https,
+            fingerprint: var_fingerprint,
         };
     }
 }
@@ -4084,12 +4100,20 @@ impl SseDecode for crate::api::webrtc::ClientInfoWithoutId {
         let mut var_deviceModel = <Option<String>>::sse_decode(deserializer);
         let mut var_deviceType = <Option<crate::api::model::DeviceType>>::sse_decode(deserializer);
         let mut var_token = <String>::sse_decode(deserializer);
+        let mut var_httpIp = <Option<String>>::sse_decode(deserializer);
+        let mut var_httpPort = <Option<u16>>::sse_decode(deserializer);
+        let mut var_https = <Option<bool>>::sse_decode(deserializer);
+        let mut var_fingerprint = <Option<String>>::sse_decode(deserializer);
         return crate::api::webrtc::ClientInfoWithoutId {
             alias: var_alias,
             version: var_version,
             device_model: var_deviceModel,
             device_type: var_deviceType,
             token: var_token,
+            http_ip: var_httpIp,
+            http_port: var_httpPort,
+            https: var_https,
+            fingerprint: var_fingerprint,
         };
     }
 }
@@ -4336,6 +4360,17 @@ impl SseDecode for Option<Dart2RustStreamReceiver> {
     }
 }
 
+impl SseDecode for Option<bool> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<bool>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::api::model::DeviceType> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -4411,6 +4446,17 @@ impl SseDecode for Option<crate::api::server::TlsConfig> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::api::server::TlsConfig>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u16> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u16>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -4509,11 +4555,19 @@ impl SseDecode for crate::api::webrtc::ProposingClientInfo {
         let mut var_version = <String>::sse_decode(deserializer);
         let mut var_deviceModel = <Option<String>>::sse_decode(deserializer);
         let mut var_deviceType = <Option<crate::api::model::DeviceType>>::sse_decode(deserializer);
+        let mut var_httpIp = <Option<String>>::sse_decode(deserializer);
+        let mut var_httpPort = <Option<u16>>::sse_decode(deserializer);
+        let mut var_https = <Option<bool>>::sse_decode(deserializer);
+        let mut var_fingerprint = <Option<String>>::sse_decode(deserializer);
         return crate::api::webrtc::ProposingClientInfo {
             alias: var_alias,
             version: var_version,
             device_model: var_deviceModel,
             device_type: var_deviceType,
+            http_ip: var_httpIp,
+            http_port: var_httpPort,
+            https: var_https,
+            fingerprint: var_fingerprint,
         };
     }
 }
@@ -5648,6 +5702,10 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::webrtc::ClientInfo
             self.0.device_model.into_into_dart().into_dart(),
             self.0.device_type.into_into_dart().into_dart(),
             self.0.token.into_into_dart().into_dart(),
+            self.0.http_ip.into_into_dart().into_dart(),
+            self.0.http_port.into_into_dart().into_dart(),
+            self.0.https.into_into_dart().into_dart(),
+            self.0.fingerprint.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5672,6 +5730,10 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::api::webrtc::ClientInfo
             self.0.device_model.into_into_dart().into_dart(),
             self.0.device_type.into_into_dart().into_dart(),
             self.0.token.into_into_dart().into_dart(),
+            self.0.http_ip.into_into_dart().into_dart(),
+            self.0.http_port.into_into_dart().into_dart(),
+            self.0.https.into_into_dart().into_dart(),
+            self.0.fingerprint.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5931,6 +5993,10 @@ impl flutter_rust_bridge::IntoDart for crate::api::webrtc::ProposingClientInfo {
             self.version.into_into_dart().into_dart(),
             self.device_model.into_into_dart().into_dart(),
             self.device_type.into_into_dart().into_dart(),
+            self.http_ip.into_into_dart().into_dart(),
+            self.http_port.into_into_dart().into_dart(),
+            self.https.into_into_dart().into_dart(),
+            self.fingerprint.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -7036,6 +7102,10 @@ impl SseEncode for crate::api::webrtc::ClientInfo {
         <Option<String>>::sse_encode(self.device_model, serializer);
         <Option<crate::api::model::DeviceType>>::sse_encode(self.device_type, serializer);
         <String>::sse_encode(self.token, serializer);
+        <Option<String>>::sse_encode(self.http_ip, serializer);
+        <Option<u16>>::sse_encode(self.http_port, serializer);
+        <Option<bool>>::sse_encode(self.https, serializer);
+        <Option<String>>::sse_encode(self.fingerprint, serializer);
     }
 }
 
@@ -7047,6 +7117,10 @@ impl SseEncode for crate::api::webrtc::ClientInfoWithoutId {
         <Option<String>>::sse_encode(self.device_model, serializer);
         <Option<crate::api::model::DeviceType>>::sse_encode(self.device_type, serializer);
         <String>::sse_encode(self.token, serializer);
+        <Option<String>>::sse_encode(self.http_ip, serializer);
+        <Option<u16>>::sse_encode(self.http_port, serializer);
+        <Option<bool>>::sse_encode(self.https, serializer);
+        <Option<String>>::sse_encode(self.fingerprint, serializer);
     }
 }
 
@@ -7262,6 +7336,16 @@ impl SseEncode for Option<Dart2RustStreamReceiver> {
     }
 }
 
+impl SseEncode for Option<bool> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <bool>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::api::model::DeviceType> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -7328,6 +7412,16 @@ impl SseEncode for Option<crate::api::server::TlsConfig> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::api::server::TlsConfig>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u16> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u16>::sse_encode(value, serializer);
         }
     }
 }
@@ -7406,6 +7500,10 @@ impl SseEncode for crate::api::webrtc::ProposingClientInfo {
         <String>::sse_encode(self.version, serializer);
         <Option<String>>::sse_encode(self.device_model, serializer);
         <Option<crate::api::model::DeviceType>>::sse_encode(self.device_type, serializer);
+        <Option<String>>::sse_encode(self.http_ip, serializer);
+        <Option<u16>>::sse_encode(self.http_port, serializer);
+        <Option<bool>>::sse_encode(self.https, serializer);
+        <Option<String>>::sse_encode(self.fingerprint, serializer);
     }
 }
 

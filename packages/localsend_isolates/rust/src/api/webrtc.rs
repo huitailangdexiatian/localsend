@@ -21,6 +21,11 @@ pub struct ProposingClientInfo {
     pub version: String,
     pub device_model: Option<String>,
     pub device_type: Option<DeviceType>,
+    /// Direct HTTP endpoint advertised to peers discovered via signaling.
+    pub http_ip: Option<String>,
+    pub http_port: Option<u16>,
+    pub https: Option<bool>,
+    pub fingerprint: Option<String>,
 }
 
 impl ProposingClientInfo {
@@ -31,6 +36,10 @@ impl ProposingClientInfo {
             device_model: self.device_model.clone(),
             device_type: self.device_type.clone(),
             token: localsend::crypto::token::generate_token_timestamp(&signing_key)?,
+            http_ip: self.http_ip.clone(),
+            http_port: self.http_port,
+            https: self.https,
+            fingerprint: self.fingerprint.clone(),
         })
     }
 }
@@ -354,10 +363,12 @@ impl RTCReceiveController {
         Ok(())
     }
 
-    pub async fn send_selection(&self, selection: HashSet<String>) -> anyhow::Result<()> {
+    pub async fn send_selection(&self, selection: Vec<String>) -> anyhow::Result<()> {
         let Some(selected_tx) = self.selected_tx.lock().await.take() else {
             return Err(anyhow::anyhow!("Selected files already sent"));
         };
+
+        let selection: HashSet<String> = selection.into_iter().collect();
 
         selected_tx
             .send(Some(selection))
@@ -468,6 +479,10 @@ pub struct _ClientInfo {
     pub device_model: Option<String>,
     pub device_type: Option<DeviceType>,
     pub token: String,
+    pub http_ip: Option<String>,
+    pub http_port: Option<u16>,
+    pub https: Option<bool>,
+    pub fingerprint: Option<String>,
 }
 
 #[frb(mirror(ClientInfoWithoutId))]
@@ -477,6 +492,10 @@ pub struct _ClientInfoWithoutId {
     pub device_model: Option<String>,
     pub device_type: Option<DeviceType>,
     pub token: String,
+    pub http_ip: Option<String>,
+    pub http_port: Option<u16>,
+    pub https: Option<bool>,
+    pub fingerprint: Option<String>,
 }
 
 #[frb(mirror(WsServerSdpMessage))]

@@ -5,10 +5,9 @@
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'package:localsend_isolates/rust/api/model.dart';
+import 'package:localsend_isolates/rust/frb_generated.dart';
 import 'package:uuid/uuid.dart';
-
-import '../frb_generated.dart';
-import 'model.dart';
 
 part 'webrtc.freezed.dart';
 
@@ -71,7 +70,7 @@ abstract class RtcReceiveController implements RustOpaqueInterface {
 
   Future<void> sendPin({required String pin});
 
-  Future<void> sendSelection({required Set<String> selection});
+  Future<void> sendSelection({required List<String> selection});
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RTCSendController>>
@@ -94,11 +93,36 @@ class ClientInfo {
   final String? deviceModel;
   final DeviceType? deviceType;
   final String token;
+  final String? httpIp;
+  final int? httpPort;
+  final bool? https;
+  final String? fingerprint;
 
-  const ClientInfo({required this.id, required this.alias, required this.version, this.deviceModel, this.deviceType, required this.token});
+  const ClientInfo({
+    required this.id,
+    required this.alias,
+    required this.version,
+    this.deviceModel,
+    this.deviceType,
+    required this.token,
+    this.httpIp,
+    this.httpPort,
+    this.https,
+    this.fingerprint,
+  });
 
   @override
-  int get hashCode => id.hashCode ^ alias.hashCode ^ version.hashCode ^ deviceModel.hashCode ^ deviceType.hashCode ^ token.hashCode;
+  int get hashCode =>
+      id.hashCode ^
+      alias.hashCode ^
+      version.hashCode ^
+      deviceModel.hashCode ^
+      deviceType.hashCode ^
+      token.hashCode ^
+      httpIp.hashCode ^
+      httpPort.hashCode ^
+      https.hashCode ^
+      fingerprint.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -110,7 +134,11 @@ class ClientInfo {
           version == other.version &&
           deviceModel == other.deviceModel &&
           deviceType == other.deviceType &&
-          token == other.token;
+          token == other.token &&
+          httpIp == other.httpIp &&
+          httpPort == other.httpPort &&
+          https == other.https &&
+          fingerprint == other.fingerprint;
 }
 
 class ClientInfoWithoutId {
@@ -119,11 +147,34 @@ class ClientInfoWithoutId {
   final String? deviceModel;
   final DeviceType? deviceType;
   final String token;
+  final String? httpIp;
+  final int? httpPort;
+  final bool? https;
+  final String? fingerprint;
 
-  const ClientInfoWithoutId({required this.alias, required this.version, this.deviceModel, this.deviceType, required this.token});
+  const ClientInfoWithoutId({
+    required this.alias,
+    required this.version,
+    this.deviceModel,
+    this.deviceType,
+    required this.token,
+    this.httpIp,
+    this.httpPort,
+    this.https,
+    this.fingerprint,
+  });
 
   @override
-  int get hashCode => alias.hashCode ^ version.hashCode ^ deviceModel.hashCode ^ deviceType.hashCode ^ token.hashCode;
+  int get hashCode =>
+      alias.hashCode ^
+      version.hashCode ^
+      deviceModel.hashCode ^
+      deviceType.hashCode ^
+      token.hashCode ^
+      httpIp.hashCode ^
+      httpPort.hashCode ^
+      https.hashCode ^
+      fingerprint.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -134,7 +185,11 @@ class ClientInfoWithoutId {
           version == other.version &&
           deviceModel == other.deviceModel &&
           deviceType == other.deviceType &&
-          token == other.token;
+          token == other.token &&
+          httpIp == other.httpIp &&
+          httpPort == other.httpPort &&
+          https == other.https &&
+          fingerprint == other.fingerprint;
 }
 
 class ExpectingPublicKey {
@@ -143,7 +198,10 @@ class ExpectingPublicKey {
   /// "ed25519" or "rsa-pss"
   final String kind;
 
-  const ExpectingPublicKey({required this.publicKey, required this.kind});
+  const ExpectingPublicKey({
+    required this.publicKey,
+    required this.kind,
+  });
 
   @override
   int get hashCode => publicKey.hashCode ^ kind.hashCode;
@@ -157,7 +215,10 @@ class PinConfig {
   final String pin;
   final int maxTries;
 
-  const PinConfig({required this.pin, required this.maxTries});
+  const PinConfig({
+    required this.pin,
+    required this.maxTries,
+  });
 
   @override
   int get hashCode => pin.hashCode ^ maxTries.hashCode;
@@ -173,10 +234,33 @@ class ProposingClientInfo {
   final String? deviceModel;
   final DeviceType? deviceType;
 
-  const ProposingClientInfo({required this.alias, required this.version, this.deviceModel, this.deviceType});
+  /// Direct HTTP endpoint advertised to peers discovered via signaling.
+  final String? httpIp;
+  final int? httpPort;
+  final bool? https;
+  final String? fingerprint;
+
+  const ProposingClientInfo({
+    required this.alias,
+    required this.version,
+    this.deviceModel,
+    this.deviceType,
+    this.httpIp,
+    this.httpPort,
+    this.https,
+    this.fingerprint,
+  });
 
   @override
-  int get hashCode => alias.hashCode ^ version.hashCode ^ deviceModel.hashCode ^ deviceType.hashCode;
+  int get hashCode =>
+      alias.hashCode ^
+      version.hashCode ^
+      deviceModel.hashCode ^
+      deviceType.hashCode ^
+      httpIp.hashCode ^
+      httpPort.hashCode ^
+      https.hashCode ^
+      fingerprint.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -186,14 +270,21 @@ class ProposingClientInfo {
           alias == other.alias &&
           version == other.version &&
           deviceModel == other.deviceModel &&
-          deviceType == other.deviceType;
+          deviceType == other.deviceType &&
+          httpIp == other.httpIp &&
+          httpPort == other.httpPort &&
+          https == other.https &&
+          fingerprint == other.fingerprint;
 }
 
 class RTCFileError {
   final String fileId;
   final String error;
 
-  const RTCFileError({required this.fileId, required this.error});
+  const RTCFileError({
+    required this.fileId,
+    required this.error,
+  });
 
   @override
   int get hashCode => fileId.hashCode ^ error.hashCode;
@@ -208,7 +299,11 @@ class RTCSendFileResponse {
   final bool success;
   final String? error;
 
-  const RTCSendFileResponse({required this.id, required this.success, this.error});
+  const RTCSendFileResponse({
+    required this.id,
+    required this.success,
+    this.error,
+  });
 
   @override
   int get hashCode => id.hashCode ^ success.hashCode ^ error.hashCode;
@@ -230,20 +325,37 @@ sealed class RTCStatus with _$RTCStatus {
   const factory RTCStatus.declined() = RTCStatus_Declined;
   const factory RTCStatus.sending() = RTCStatus_Sending;
   const factory RTCStatus.finished() = RTCStatus_Finished;
-  const factory RTCStatus.error(String field0) = RTCStatus_Error;
+  const factory RTCStatus.error(
+    String field0,
+  ) = RTCStatus_Error;
 }
 
 @freezed
 sealed class WsServerMessage with _$WsServerMessage {
   const WsServerMessage._();
 
-  const factory WsServerMessage.hello({required ClientInfo client, required List<ClientInfo> peers}) = WsServerMessage_Hello;
-  const factory WsServerMessage.join({required ClientInfo peer}) = WsServerMessage_Join;
-  const factory WsServerMessage.update({required ClientInfo peer}) = WsServerMessage_Update;
-  const factory WsServerMessage.left({required UuidValue peerId}) = WsServerMessage_Left;
-  const factory WsServerMessage.offer(WsServerSdpMessage field0) = WsServerMessage_Offer;
-  const factory WsServerMessage.answer(WsServerSdpMessage field0) = WsServerMessage_Answer;
-  const factory WsServerMessage.error({required int code}) = WsServerMessage_Error;
+  const factory WsServerMessage.hello({
+    required ClientInfo client,
+    required List<ClientInfo> peers,
+  }) = WsServerMessage_Hello;
+  const factory WsServerMessage.join({
+    required ClientInfo peer,
+  }) = WsServerMessage_Join;
+  const factory WsServerMessage.update({
+    required ClientInfo peer,
+  }) = WsServerMessage_Update;
+  const factory WsServerMessage.left({
+    required UuidValue peerId,
+  }) = WsServerMessage_Left;
+  const factory WsServerMessage.offer(
+    WsServerSdpMessage field0,
+  ) = WsServerMessage_Offer;
+  const factory WsServerMessage.answer(
+    WsServerSdpMessage field0,
+  ) = WsServerMessage_Answer;
+  const factory WsServerMessage.error({
+    required int code,
+  }) = WsServerMessage_Error;
 }
 
 class WsServerSdpMessage {
@@ -251,7 +363,11 @@ class WsServerSdpMessage {
   final String sessionId;
   final String sdp;
 
-  const WsServerSdpMessage({required this.peer, required this.sessionId, required this.sdp});
+  const WsServerSdpMessage({
+    required this.peer,
+    required this.sessionId,
+    required this.sdp,
+  });
 
   @override
   int get hashCode => peer.hashCode ^ sessionId.hashCode ^ sdp.hashCode;

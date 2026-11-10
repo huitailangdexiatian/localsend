@@ -10,23 +10,27 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
+import 'package:localsend_isolates/rust/api/cancel.dart';
+import 'package:localsend_isolates/rust/api/crypto.dart';
+import 'package:localsend_isolates/rust/api/discovery.dart';
+import 'package:localsend_isolates/rust/api/filename.dart';
+import 'package:localsend_isolates/rust/api/http.dart';
+import 'package:localsend_isolates/rust/api/logging.dart';
+import 'package:localsend_isolates/rust/api/metadata.dart';
+import 'package:localsend_isolates/rust/api/model.dart';
+import 'package:localsend_isolates/rust/api/server.dart';
+import 'package:localsend_isolates/rust/api/stream.dart';
+import 'package:localsend_isolates/rust/api/webrtc.dart';
+import 'package:localsend_isolates/rust/frb_generated.dart';
 import 'package:uuid/uuid.dart';
 
-import 'api/cancel.dart';
-import 'api/crypto.dart';
-import 'api/discovery.dart';
-import 'api/filename.dart';
-import 'api/http.dart';
-import 'api/logging.dart';
-import 'api/metadata.dart';
-import 'api/model.dart';
-import 'api/server.dart';
-import 'api/stream.dart';
-import 'api/webrtc.dart';
-import 'frb_generated.dart';
-
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({required super.handler, required super.wire, required super.generalizedFrbRustBinding, required super.portManager});
+  RustLibApiImplPlatform({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
 
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_Dart2RustStreamReceiverPtr =>
       wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDart2RustStreamReceiver;
@@ -228,6 +232,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw);
+
+  @protected
   ClientInfo dco_decode_box_autoadd_client_info(dynamic raw);
 
   @protected
@@ -277,6 +284,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TlsConfig dco_decode_box_autoadd_tls_config(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_16(dynamic raw);
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
@@ -358,6 +368,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDart2RustStreamReceiver(dynamic raw);
 
   @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
   DeviceType? dco_decode_opt_box_autoadd_device_type(dynamic raw);
 
   @protected
@@ -377,6 +390,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TlsConfig? dco_decode_opt_box_autoadd_tls_config(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_16(dynamic raw);
 
   @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
@@ -692,6 +708,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
   ClientInfo sse_decode_box_autoadd_client_info(SseDeserializer deserializer);
 
   @protected
@@ -741,6 +760,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TlsConfig sse_decode_box_autoadd_tls_config(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_16(SseDeserializer deserializer);
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
@@ -824,6 +846,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
   DeviceType? sse_decode_opt_box_autoadd_device_type(SseDeserializer deserializer);
 
   @protected
@@ -843,6 +868,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TlsConfig? sse_decode_opt_box_autoadd_tls_config(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer);
 
   @protected
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
@@ -1203,6 +1231,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_client_info(ClientInfo self, SseSerializer serializer);
 
   @protected
@@ -1252,6 +1283,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_tls_config(TlsConfig self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
@@ -1335,6 +1369,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_device_type(DeviceType? self, SseSerializer serializer);
 
   @protected
@@ -1354,6 +1391,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_tls_config(TlsConfig? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_16(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);

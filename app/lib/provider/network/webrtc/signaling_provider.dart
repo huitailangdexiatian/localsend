@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter/foundation.dart';
@@ -24,10 +25,15 @@ class SignalingState with SignalingStateMappable {
   final List<String> stunServers;
   final Map<String, LsSignalingConnection> connections;
 
+  /// Per signaling server connection status, shown in the settings page.
+  /// Values are human readable, e.g. "connecting", "connected" or an error.
+  final Map<String, String> status;
+
   SignalingState({
     required this.signalingServers,
     required this.stunServers,
     required this.connections,
+    required this.status,
   });
 }
 
@@ -50,6 +56,7 @@ class SignalingService extends ReduxNotifier<SignalingState> {
       signalingServers: _persistence.getSignalingServers() ?? [],
       stunServers: _persistence.getStunServers() ?? ['stun:stun.localsend.org:3478'],
       connections: {},
+      status: {},
     );
   }
 }
@@ -71,98 +78,155 @@ class _SetupSignalingConnection extends AsyncGlobalAction {
 
   _SetupSignalingConnection({required this.signalingServer});
 
+  void _setStatus(String status) {
+    ref
+        .redux(signalingProvider)
+        .dispatch(
+          _SetStatusAction(signalingServer: signalingServer, status: status),
+        );
+  }
+
   @override
   Future<void> reduce() async {
-    final settings = ref.read(settingsProvider);
-    final deviceInfo = ref.read(deviceInfoProvider);
+    var retryDelay = const Duration(seconds: 3);
 
-    // TODO: Use persistent key
-    final key = await crypto.generateKeyPair();
-    if (kDebugMode) {
-      print('private key: ${key.privateKey}');
-    }
+    while (true) {
+      if (!ref.read(settingsProvider).useWebRtc) {
+        _setStatus('已关闭');
+        return state;
+      }
 
-    LsSignalingConnection? connection;
-    final stream = connect(
-      uri: signalingServer,
-      info: ProposingClientInfo(
-        alias: settings.alias,
-        version: protocolVersion,
-        deviceModel: deviceInfo.deviceModel,
-        deviceType: deviceInfo.deviceType.toRustDeviceType(),
-      ),
-      privateKey: key.privateKey,
-      onConnection: (c) {
-        connection = c;
+      _setStatus('连接中…');
 
-        ref
-            .redux(signalingProvider)
-            .dispatch(
-              _SetConnectionAction(
-                signalingServer: signalingServer,
-                connection: c,
-              ),
-            );
-      },
-    );
+      try {
+        final settings = ref.read(settingsProvider);
+        final deviceInfo = ref.read(deviceInfoProvider);
+        final fullInfo = ref.read(deviceFullInfoProvider);
 
-    try {
-      await for (final message in stream) {
-        switch (message) {
-          case WsServerMessage_Hello():
-            for (final d in message.peers) {
+        // TODO: Use persistent key
+        final key = await crypto.generateKeyPair();
+        if (kDebugMode) {
+          print('private key: ${key.privateKey}');
+        }
+
+        LsSignalingConnection? connection;
+        final stream = connect(
+          uri: signalingServer,
+          info: ProposingClientInfo(
+            alias: settings.alias,
+            version: protocolVersion,
+            deviceModel: deviceInfo.deviceModel,
+            deviceType: deviceInfo.deviceType.toRustDeviceType(),
+            httpIp: fullInfo.ip == '-' ? null : fullInfo.ip,
+            httpPort: fullInfo.port > 0 ? fullInfo.port : null,
+            https: fullInfo.https,
+            fingerprint: fullInfo.fingerprint,
+          ),
+          privateKey: key.privateKey,
+          onConnection: (c) {
+            connection = c;
+
+            ref
+                .redux(signalingProvider)
+                .dispatch(
+                  _SetConnectionAction(
+                    signalingServer: signalingServer,
+                    connection: c,
+                  ),
+                );
+          },
+        );
+
+        await for (final message in stream) {
+          switch (message) {
+            case WsServerMessage_Hello():
+              for (final d in message.peers) {
+                ref
+                    .redux(nearbyDevicesProvider)
+                    .dispatch(
+                      RegisterSignalingDeviceAction(
+                        d.toDevice(signalingServer),
+                      ),
+                    );
+              }
+              break;
+            case WsServerMessage_Join(peer: final peer):
+            case WsServerMessage_Update(peer: final peer):
               ref
                   .redux(nearbyDevicesProvider)
                   .dispatch(
                     RegisterSignalingDeviceAction(
-                      d.toDevice(signalingServer),
+                      peer.toDevice(signalingServer),
                     ),
                   );
-            }
-            break;
-          case WsServerMessage_Join(peer: final peer):
-          case WsServerMessage_Update(peer: final peer):
-            ref
-                .redux(nearbyDevicesProvider)
-                .dispatch(
-                  RegisterSignalingDeviceAction(
-                    peer.toDevice(signalingServer),
-                  ),
+              break;
+            case WsServerMessage_Left():
+              ref
+                  .redux(nearbyDevicesProvider)
+                  .dispatch(
+                    UnregisterSignalingDeviceAction(
+                      message.peerId.uuid,
+                    ),
+                  );
+              break;
+            case WsServerMessage_Offer():
+              final provider = ReduxProvider<WebRTCReceiveService, WebRTCReceiveState>((ref) {
+                return WebRTCReceiveService(
+                  signalingServer: signalingServer,
+                  stunServers: ref.read(signalingProvider).stunServers,
+                  connection: connection!,
+                  offer: message.field0,
+                  settings: ref.read(settingsProvider),
+                  favorites: ref.read(favoritesProvider),
+                  key: ref.read(securityProvider),
                 );
-            break;
-          case WsServerMessage_Left():
-            ref
-                .redux(nearbyDevicesProvider)
-                .dispatch(
-                  UnregisterSignalingDeviceAction(
-                    message.peerId.uuid,
-                  ),
-                );
-            break;
-          case WsServerMessage_Offer():
-            final provider = ReduxProvider<WebRTCReceiveService, WebRTCReceiveState>((ref) {
-              return WebRTCReceiveService(
-                signalingServer: signalingServer,
-                stunServers: ref.read(signalingProvider).stunServers,
-                connection: connection!,
-                offer: message.field0,
-                settings: ref.read(settingsProvider),
-                favorites: ref.read(favoritesProvider),
-                key: ref.read(securityProvider),
-              );
-            });
+              });
 
-            await ref.redux(provider).dispatchAsync(AcceptOfferAction());
-            break;
-          case WsServerMessage_Answer():
-          case WsServerMessage_Error():
+              await ref.redux(provider).dispatchAsync(AcceptOfferAction());
+              break;
+            case WsServerMessage_Answer():
+            case WsServerMessage_Error():
+          }
         }
+      } catch (e) {
+        final message = e.toString();
+        _setStatus('连接失败：$message');
+        debugPrint('Signaling error ($signalingServer): $message');
+      } finally {
+        ref.redux(signalingProvider).dispatch(_RemoveConnectionAction(signalingServer: signalingServer));
+        ref.redux(nearbyDevicesProvider).dispatch(ClearSignalingDevicesAction(signalingServer));
       }
-    } finally {
-      ref.redux(signalingProvider).dispatch(_RemoveConnectionAction(signalingServer: signalingServer));
-    }
 
-    return state;
+      if (!ref.read(settingsProvider).useWebRtc) {
+        _setStatus('已关闭');
+        return state;
+      }
+
+      final seconds = retryDelay.inSeconds;
+      _setStatus('$seconds 秒后重试');
+      await Future.delayed(retryDelay);
+      retryDelay = Duration(seconds: min(seconds * 2, 30));
+    }
+  }
+}
+
+class _SetStatusAction extends ReduxAction<SignalingService, SignalingState> {
+  final String signalingServer;
+  final String status;
+
+  _SetStatusAction({
+    required this.signalingServer,
+    required this.status,
+  });
+
+  @override
+  SignalingState reduce() {
+    return state.copyWith(
+      status: {
+        ...state.status,
+        signalingServer: status,
+      },
+    );
   }
 }
 
@@ -206,11 +270,11 @@ extension ClientInfoExt on ClientInfo {
   Device toDevice(String signalingServer) {
     return Device(
       signalingId: id.uuid,
-      ip: null,
+      ip: httpIp,
       version: version,
-      port: -1,
-      https: false,
-      fingerprint: token,
+      port: httpPort ?? -1,
+      https: https ?? false,
+      fingerprint: fingerprint ?? token,
       alias: alias,
       deviceModel: deviceModel,
       deviceType: deviceType?.toDeviceType() ?? DeviceType.desktop,

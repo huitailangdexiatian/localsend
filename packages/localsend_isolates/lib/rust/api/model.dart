@@ -4,10 +4,15 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:localsend_isolates/rust/frb_generated.dart';
 
-import '../frb_generated.dart';
-
-enum DeviceType { mobile, desktop, web, headless, server }
+enum DeviceType {
+  mobile,
+  desktop,
+  web,
+  headless,
+  server,
+}
 
 class FileDto {
   final String id;
@@ -18,7 +23,15 @@ class FileDto {
   final String? preview;
   final FileMetadata? metadata;
 
-  const FileDto({required this.id, required this.fileName, required this.size, required this.fileType, this.sha256, this.preview, this.metadata});
+  const FileDto({
+    required this.id,
+    required this.fileName,
+    required this.size,
+    required this.fileType,
+    this.sha256,
+    this.preview,
+    this.metadata,
+  });
 
   @override
   int get hashCode => id.hashCode ^ fileName.hashCode ^ size.hashCode ^ fileType.hashCode ^ sha256.hashCode ^ preview.hashCode ^ metadata.hashCode;
@@ -41,7 +54,10 @@ class FileMetadata {
   final String? modified;
   final String? accessed;
 
-  const FileMetadata({this.modified, this.accessed});
+  const FileMetadata({
+    this.modified,
+    this.accessed,
+  });
 
   @override
   int get hashCode => modified.hashCode ^ accessed.hashCode;
@@ -55,7 +71,10 @@ class PrepareUploadRequestDto {
   final RegisterDto info;
   final Map<String, FileDto> files;
 
-  const PrepareUploadRequestDto({required this.info, required this.files});
+  const PrepareUploadRequestDto({
+    required this.info,
+    required this.files,
+  });
 
   @override
   int get hashCode => info.hashCode ^ files.hashCode;
@@ -69,7 +88,10 @@ class PrepareUploadResponseDto {
   final String sessionId;
   final Map<String, String> files;
 
-  const PrepareUploadResponseDto({required this.sessionId, required this.files});
+  const PrepareUploadResponseDto({
+    required this.sessionId,
+    required this.files,
+  });
 
   @override
   int get hashCode => sessionId.hashCode ^ files.hashCode;
@@ -80,7 +102,10 @@ class PrepareUploadResponseDto {
       other is PrepareUploadResponseDto && runtimeType == other.runtimeType && sessionId == other.sessionId && files == other.files;
 }
 
-enum ProtocolType { http, https }
+enum ProtocolType {
+  http,
+  https,
+}
 
 class RegisterDto {
   final String alias;

@@ -123,6 +123,32 @@ class RegisterSignalingDeviceAction extends ReduxAction<NearbyDevicesService, Ne
   }
 }
 
+/// Removes every device that was discovered through the given signaling server.
+/// Used when the signaling connection is lost, so stale devices do not linger
+/// in the device list (they cannot be reached anymore).
+class ClearSignalingDevicesAction extends ReduxAction<NearbyDevicesService, NearbyDevicesState> {
+  final String signalingServer;
+
+  ClearSignalingDevicesAction(this.signalingServer);
+
+  @override
+  NearbyDevicesState reduce() {
+    return state.copyWith(
+      signalingDevices: {
+        for (final entry in state.signalingDevices.entries)
+          entry.key: entry.value
+              .where(
+                (device) => !device.channels.any(
+                  (channel) => channel is SignalingChannel && channel.signalingServer == signalingServer,
+                ),
+              )
+              .toSet(),
+      },
+    );
+  }
+}
+
+/// Removes a signaling device from the state.
 class UnregisterSignalingDeviceAction extends ReduxAction<NearbyDevicesService, NearbyDevicesState> {
   final String signalingId;
 

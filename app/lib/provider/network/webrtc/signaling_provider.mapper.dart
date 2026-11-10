@@ -37,12 +37,18 @@ class SignalingStateMapper extends ClassMapperBase<SignalingState> {
       v.connections;
   static const Field<SignalingState, Map<String, LsSignalingConnection>>
   _f$connections = Field('connections', _$connections);
+  static Map<String, String> _$status(SignalingState v) => v.status;
+  static const Field<SignalingState, Map<String, String>> _f$status = Field(
+    'status',
+    _$status,
+  );
 
   @override
   final MappableFields<SignalingState> fields = const {
     #signalingServers: _f$signalingServers,
     #stunServers: _f$stunServers,
     #connections: _f$connections,
+    #status: _f$status,
   };
 
   static SignalingState _instantiate(DecodingData data) {
@@ -50,6 +56,7 @@ class SignalingStateMapper extends ClassMapperBase<SignalingState> {
       signalingServers: data.dec(_f$signalingServers),
       stunServers: data.dec(_f$stunServers),
       connections: data.dec(_f$connections),
+      status: data.dec(_f$status),
     );
   }
 
@@ -125,10 +132,13 @@ abstract class SignalingStateCopyWith<$R, $In extends SignalingState, $Out>
     ObjectCopyWith<$R, LsSignalingConnection, LsSignalingConnection>
   >
   get connections;
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get status;
   $R call({
     List<String>? signalingServers,
     List<String>? stunServers,
     Map<String, LsSignalingConnection>? connections,
+    Map<String, String>? status,
   });
   SignalingStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -170,15 +180,24 @@ class _SignalingStateCopyWithImpl<$R, $Out>
     (v) => call(connections: v),
   );
   @override
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+  get status => MapCopyWith(
+    $value.status,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(status: v),
+  );
+  @override
   $R call({
     List<String>? signalingServers,
     List<String>? stunServers,
     Map<String, LsSignalingConnection>? connections,
+    Map<String, String>? status,
   }) => $apply(
     FieldCopyWithData({
       if (signalingServers != null) #signalingServers: signalingServers,
       if (stunServers != null) #stunServers: stunServers,
       if (connections != null) #connections: connections,
+      if (status != null) #status: status,
     }),
   );
   @override
@@ -186,6 +205,7 @@ class _SignalingStateCopyWithImpl<$R, $Out>
     signalingServers: data.get(#signalingServers, or: $value.signalingServers),
     stunServers: data.get(#stunServers, or: $value.stunServers),
     connections: data.get(#connections, or: $value.connections),
+    status: data.get(#status, or: $value.status),
   );
 
   @override
